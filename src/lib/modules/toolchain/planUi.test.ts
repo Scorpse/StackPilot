@@ -5,7 +5,8 @@
 // docker-related инструменты ставятся локально, no-op правдив,
 // обновление только при наличии цели, ремонт PATH ≠ переустановка,
 // малиформированные действия задач не роняют рендер.
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
+import { i18n } from "../../core/i18n.svelte";
 import {
   noopReasonLabel,
   planTaskIsActionable,
@@ -33,6 +34,10 @@ function task(action: PlanTask["action"], over: Partial<PlanTask> = {}): PlanTas
     ...over,
   };
 }
+
+beforeAll(() => {
+  i18n.setLocale("ru");
+});
 
 describe("docker-related tools install locally in standalone plans", () => {
   it("missing mysql produces a host install task, never a docker no-op", () => {

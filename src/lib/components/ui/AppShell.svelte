@@ -87,7 +87,7 @@
         appSettings = s;
         restoreRoute = s.restore_last_route;
         // The backend is the single source of truth for the UI language.
-        i18n.setLocale((s.language as Locale) || "ru");
+        i18n.setLocale((s.language as Locale) || "en");
       })
       .catch(() => {});
     // First-run detection — open the welcome tour unless already seen.

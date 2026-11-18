@@ -34,7 +34,7 @@
   import { selectFolder } from "$lib/modules/project_creator/api";
   import { notifySuccess, notifyError } from "$lib/core/toasts";
   import { i18n } from "$lib/core/i18n.svelte";
-  import type { TranslationKey } from "$lib/core/i18n.svelte";
+
 
   let environments = $state<EnvironmentBinding[]>([]);
   let loading = $state(true);
@@ -106,7 +106,7 @@
         }
       }
     } catch (e) {
-      notifyError("Ошибка загрузки сред", String(e));
+      notifyError(i18n.t("environments.load_failed"), String(e));
     } finally {
       loading = false;
     }
@@ -114,15 +114,15 @@
 
   async function handleCleanupSandbox(env: EnvironmentBinding) {
     const confirmed = confirm(
-      `Очистить временный кэш песочницы для «${env.name || env.binding_id}»? Исполняемые файлы и шиммы будут пересозданы начисто.`
+      i18n.t("environments.clear_cache_confirm", { name: env.name || env.binding_id })
     );
     if (!confirmed) return;
     try {
       const usage = await cleanupSandbox(env.binding_id);
       diskUsages[env.binding_id] = usage;
-      notifySuccess("Кэш очищен", `Размер песочницы теперь ${usage.size_display}`);
+      notifySuccess(i18n.t("environments.cache_cleared"), i18n.t("environments.cache_size", { size: usage.size_display }));
     } catch (e) {
-      notifyError("Ошибка очистки", String(e));
+      notifyError(i18n.t("environments.cache_failed"), String(e));
     }
   }
 
@@ -173,12 +173,12 @@
       }
       if (rows.length > 0) {
         modalTools = rows;
-        notifySuccess("Инструменты обнаружены", `Найдено ${rows.length} инструментов в системе`);
+        notifySuccess(i18n.t("environments.tools_found"), i18n.t("environments.tools_found_detail", { count: String(rows.length) }));
       } else {
-        notifyError("Не найдено", "Системные инструменты не обнаружены в стандартных путях");
+        notifyError(i18n.t("environments.tools_not_found"), i18n.t("environments.tools_not_found_detail"));
       }
     } catch (e) {
-      notifyError("Ошибка обнаружения", String(e));
+      notifyError(i18n.t("environments.discovery_failed"), String(e));
     } finally {
       detectingTools = false;
     }
@@ -194,7 +194,7 @@
 
   async function handleSave() {
     if (!modalName.trim()) {
-      notifyError("Имя обязательно", "Укажите название окружения");
+      notifyError(i18n.t("environments.name_required"), i18n.t("environments.name_required_detail"));
       return;
     }
 
@@ -203,7 +203,7 @@
       let bindingToSave: EnvironmentBinding;
       if (editingId) {
         const existing = environments.find((e) => e.binding_id === editingId);
-        if (!existing) throw new Error("Окружение не найдено");
+        if (!existing) throw new Error(i18n.t("environments.not_found"));
         bindingToSave = { ...existing };
       } else {
         const now = new Date().toISOString();
@@ -257,11 +257,11 @@
       bindingToSave.env_vars = envMap;
 
       await saveEnvironment(bindingToSave);
-      notifySuccess("Сохранено", `Окружение «${bindingToSave.name}» сохранено`);
+      notifySuccess(i18n.t("environments.saved"), i18n.t("environments.saved_detail", { name: bindingToSave.name }));
       showModal = false;
       await loadData();
     } catch (e) {
-      notifyError("Ошибка сохранения", String(e));
+      notifyError(i18n.t("environments.save_failed"), String(e));
     } finally {
       saving = false;
     }
@@ -269,29 +269,29 @@
 
   async function handleDelete(env: EnvironmentBinding) {
     if (env.is_default) {
-      notifyError("Защита", "Нельзя удалить системное окружение по умолчанию");
+      notifyError(i18n.t("environments.protected"), i18n.t("environments.default_cannot_delete"));
       return;
     }
     const confirmed = confirm(
-      i18n.t("environments.delete_confirm" as TranslationKey) || "Удалить это окружение?"
+      i18n.t("environments.delete_confirm")
     );
     if (!confirmed) return;
 
     try {
       await deleteEnvironment(env.binding_id);
-      notifySuccess("Удалено", `Окружение «${env.name || env.binding_id}» удалено`);
+      notifySuccess(i18n.t("environments.deleted"), i18n.t("environments.deleted_detail", { name: env.name || env.binding_id }));
       await loadData();
     } catch (e) {
-      notifyError("Ошибка удаления", String(e));
+      notifyError(i18n.t("environments.delete_failed"), String(e));
     }
   }
 
   async function handleOpenTerminal(env: EnvironmentBinding) {
     try {
       await openEnvironmentTerminal(env.binding_id);
-      notifySuccess("Терминал", `Запущен терминал в окружении «${env.name || env.binding_id}»`);
+      notifySuccess(i18n.t("environments.terminal"), i18n.t("environments.terminal_detail", { name: env.name || env.binding_id }));
     } catch (e) {
-      notifyError("Ошибка терминала", String(e));
+      notifyError(i18n.t("environments.terminal_failed"), String(e));
     }
   }
 
@@ -300,20 +300,20 @@
       const folder = await selectFolder();
       if (!folder) return;
       await bindProjectToEnvironment(env.binding_id, folder);
-      notifySuccess("Проект привязан", `Проект ${folder} привязан к среде «${env.name}»`);
+      notifySuccess(i18n.t("environments.project_bound"), i18n.t("environments.bound_detail", { path: folder, name: env.name || env.binding_id }));
       await loadData();
     } catch (e) {
-      notifyError("Ошибка привязки", String(e));
+      notifyError(i18n.t("environments.bind_failed"), String(e));
     }
   }
 
   async function handleUnbindProject(env: EnvironmentBinding, projectPath: string) {
     try {
       await unbindProjectFromEnvironment(env.binding_id, projectPath);
-      notifySuccess("Отвязано", "Проект отвязан от окружения");
+      notifySuccess(i18n.t("environments.project_unbound"), i18n.t("environments.project_unbound_detail"));
       await loadData();
     } catch (e) {
-      notifyError("Ошибка отвязки", String(e));
+      notifyError(i18n.t("environments.unbind_failed"), String(e));
     }
   }
 
@@ -322,16 +322,16 @@
       await openProject(projectPath);
       goto("/workspace");
     } catch (e) {
-      notifyError("Ошибка открытия", String(e));
+      notifyError(i18n.t("environments.open_failed"), String(e));
     }
   }
 
   async function handleConfigureVsCode(env: EnvironmentBinding, projectPath: string) {
     try {
       await configureVsCodeEnvironment(env.binding_id, projectPath);
-      notifySuccess("VS Code", `Конфигурация .vscode/settings.json обновлена для «${env.name}»`);
+      notifySuccess("VS Code", i18n.t("environments.vscode_detail", { name: env.name || env.binding_id }));
     } catch (e) {
-      notifyError("Ошибка VS Code", String(e));
+      notifyError(i18n.t("environments.vscode_failed"), String(e));
     }
   }
 
@@ -348,19 +348,19 @@
 
       const res = await exportStandaloneEnvironment(env.binding_id, target);
       notifySuccess(
-        "Standalone скрипты экспортированы",
-        `Созданы ${res.created_files.join(", ")} в директории: ${res.target_dir}`
+        i18n.t("environments.exported"),
+        i18n.t("environments.exported_detail", { files: res.created_files.join(", "), path: res.target_dir })
       );
     } catch (e) {
-      notifyError("Ошибка экспорта", String(e));
+      notifyError(i18n.t("environments.export_failed"), String(e));
     }
   }
 </script>
 
 <PageContainer width="wide">
   <PageHeader
-    title={i18n.t("environments.title" as TranslationKey) || "Окружения разработки"}
-    description={i18n.t("environments.subtitle" as TranslationKey) || "Изолированные среды под проекты: независимые версии рантаймов, нулевое засорение системы и быстрый старт"}
+    title={i18n.t("environments.title")}
+    description={i18n.t("environments.subtitle")}
     icon="package"
   >
     {#snippet actions()}
@@ -369,7 +369,7 @@
         icon="sparkles"
         onclick={openCreateModal}
       >
-        {i18n.t("environments.create_btn" as TranslationKey) || "Создать окружение"}
+        {i18n.t("environments.create_btn")}
       </Button>
     {/snippet}
   </PageHeader>
@@ -379,22 +379,22 @@
     <div class="stat-pill">
       <span class="stat-icon purple"><Icon name="layers" size={13} /></span>
       <span class="stat-num">{environments.length}</span>
-      <span class="stat-text">сред</span>
+      <span class="stat-text">{i18n.t("environments.stat_environments")}</span>
     </div>
     <div class="stat-pill">
       <span class="stat-icon amber"><Icon name="package" size={13} /></span>
       <span class="stat-num">{totalIsolated}</span>
-      <span class="stat-text">песочниц</span>
+      <span class="stat-text">{i18n.t("environments.stat_sandboxes")}</span>
     </div>
     <div class="stat-pill">
       <span class="stat-icon blue"><Icon name="folder" size={13} /></span>
       <span class="stat-num">{totalProjects}</span>
-      <span class="stat-text">проектов</span>
+      <span class="stat-text">{i18n.t("environments.stat_projects")}</span>
     </div>
     <div class="stat-pill">
       <span class="stat-icon cyan"><Icon name="database" size={13} /></span>
       <span class="stat-num">{totalDiskUsageDisplay}</span>
-      <span class="stat-text">объём</span>
+      <span class="stat-text">{i18n.t("environments.stat_size")}</span>
     </div>
   </div>
 
@@ -404,7 +404,7 @@
       <Icon name="search" size={16} />
       <input
         type="text"
-        placeholder="Поиск окружений по имени, инструментам или проектам…"
+        placeholder={i18n.t("environments.search")}
         bind:value={searchQuery}
         class="sp-search-input"
       />
@@ -415,18 +415,18 @@
   </div>
 
   {#if loading}
-    <LoadingState label="Загрузка списка окружений…" />
+    <LoadingState label={i18n.t("environments.loading")} />
   {:else if filteredEnvironments.length === 0}
     <EmptyState
       icon="package"
-      title={i18n.t("environments.empty_title" as TranslationKey) || "Окружения не найдены"}
+      title={i18n.t("environments.empty_title")}
       description={searchQuery
-        ? "По вашему запросу ничего не найдено"
-        : (i18n.t("environments.empty_desc" as TranslationKey) || "Создайте новую изолированную среду для проекта.")}
+        ? i18n.t("environments.no_search_results")
+        : (i18n.t("environments.empty_desc"))}
     >
       {#snippet action()}
         <Button variant="secondary" icon="sparkles" onclick={openCreateModal}>
-          Создать первую среду
+          {i18n.t("environments.create_first")}
         </Button>
       {/snippet}
     </EmptyState>
@@ -444,11 +444,11 @@
                 <div class="sp-env-name-row">
                   <h3 class="sp-env-name" title={env.name || env.binding_id}>{env.name || env.binding_id}</h3>
                   {#if env.is_default}
-                    <span class="sp-pill pill-cyan">Система</span>
+                    <span class="sp-pill pill-cyan">{i18n.t("environments.system")}</span>
                   {:else}
                     <span class="sp-pill pill-amber">Sandbox</span>
                     {#if diskUsages[env.binding_id]}
-                      <span class="sp-pill pill-neutral" title="Размер песочницы на диске">
+                      <span class="sp-pill pill-neutral" title={i18n.t("environments.sandbox_size")}>
                         <Icon name="database" size={10} />
                         {diskUsages[env.binding_id].size_display}
                       </span>
@@ -467,7 +467,7 @@
                 type="button"
                 class="sp-tool-btn"
                 onclick={() => handleOpenTerminal(env)}
-                title="Терминал в этой среде"
+                title={i18n.t("environments.open_terminal")}
               >
                 <Icon name="terminal" size={14} />
               </button>
@@ -475,7 +475,7 @@
                 type="button"
                 class="sp-tool-btn"
                 onclick={() => handleExportStandalone(env)}
-                title="Экспорт скриптов (activate.bat / activate.sh)"
+                title={i18n.t("environments.export_activation_files")}
               >
                 <Icon name="download" size={14} />
               </button>
@@ -484,7 +484,7 @@
                   type="button"
                   class="sp-tool-btn"
                   onclick={() => handleCleanupSandbox(env)}
-                  title="Очистить временный кэш песочницы"
+                  title={i18n.t("environments.clear_cache")}
                 >
                   <Icon name="refresh" size={14} />
                 </button>
@@ -493,7 +493,7 @@
                 type="button"
                 class="sp-tool-btn"
                 onclick={() => openEditModal(env)}
-                title="Настроить окружение"
+                title={i18n.t("environments.configure")}
               >
                 <Icon name="settings" size={14} />
               </button>
@@ -502,7 +502,7 @@
                   type="button"
                   class="sp-tool-btn btn-danger"
                   onclick={() => handleDelete(env)}
-                  title="Удалить окружение"
+                  title={i18n.t("environments.delete")}
                 >
                   <Icon name="trash" size={14} />
                 </button>
@@ -515,15 +515,15 @@
             <div class="sp-block-head">
               <div class="sp-block-title">
                 <Icon name="wrench" size={12} />
-                <span>Инструменты</span>
+                <span>{i18n.t("environments.tools")}</span>
               </div>
             </div>
 
             {#if Object.keys(env.tool_overrides || {}).length === 0}
               <div class="sp-block-empty">
                 {env.is_default
-                  ? "Системные версии из PATH хоста"
-                  : "Не переопределены (наследуются из хоста)"}
+                  ? i18n.t("environments.system_path")
+                  : i18n.t("environments.inherited")}
               </div>
             {:else}
               <div class="sp-tools-tags">
@@ -545,7 +545,7 @@
               <div class="sp-block-head">
                 <div class="sp-block-title">
                   <Icon name="layers" size={12} />
-                  <span>Переменные ({Object.keys(env.env_vars).length})</span>
+                  <span>{i18n.t("environments.variable_count", { count: String(Object.keys(env.env_vars).length) })}</span>
                 </div>
               </div>
               <div class="sp-envvars-preview">
@@ -564,22 +564,22 @@
             <div class="sp-block-head">
               <div class="sp-block-title">
                 <Icon name="folder" size={12} />
-                <span>Проекты ({(env.bound_projects || []).length})</span>
+                <span>{i18n.t("environments.project_count", { count: String((env.bound_projects || []).length) })}</span>
               </div>
               <button
                 type="button"
                 class="sp-mini-link-btn"
                 onclick={() => handleBindProject(env)}
-                title="Привязать существующую папку проекта"
+                title={i18n.t("environments.bind_project")}
               >
                 <Icon name="plus" size={11} />
-                <span>Привязать</span>
+                <span>{i18n.t("environments.bind")}</span>
               </button>
             </div>
 
             {#if !env.bound_projects || env.bound_projects.length === 0}
               <div class="sp-block-empty">
-                Нет привязанных проектов
+                {i18n.t("environments.no_bound_projects")}
               </div>
             {:else}
               <div class="sp-projects-list">
@@ -595,7 +595,7 @@
                         type="button"
                         class="sp-sub-btn"
                         onclick={() => handleOpenInWorkspace(projPath, env)}
-                        title="Открыть в Workspace"
+                        title={i18n.t("environments.open_workspace")}
                       >
                         <Icon name="play" size={11} />
                       </button>
@@ -603,7 +603,7 @@
                         type="button"
                         class="sp-sub-btn"
                         onclick={() => handleConfigureVsCode(env, projPath)}
-                        title="Сконфигурировать VS Code (.vscode)"
+                        title={i18n.t("environments.configure_vscode")}
                       >
                         <Icon name="terminal" size={11} />
                       </button>
@@ -611,7 +611,7 @@
                         type="button"
                         class="sp-sub-btn"
                         onclick={() => handleExportStandalone(env, projPath)}
-                        title="Экспорт скриптов активации"
+                        title={i18n.t("environments.export_activation")}
                       >
                         <Icon name="download" size={11} />
                       </button>
@@ -619,7 +619,7 @@
                         type="button"
                         class="sp-sub-btn btn-del"
                         onclick={() => handleUnbindProject(env, projPath)}
-                        title="Отвязать проект"
+                        title={i18n.t("environments.unbind_project")}
                       >
                         ✕
                       </button>
@@ -638,28 +638,28 @@
   <Modal
     open={showModal}
     onclose={() => showModal = false}
-    title={editingId ? "Настройка окружения" : "Создание новой среды"}
-    description="Изолированное окружение позволяет избежать конфликтов версий и обеспечивает чистый запуск проектов."
+    title={editingId ? i18n.t("environments.edit_title") : i18n.t("environments.create_title")}
+    description={i18n.t("environments.form_description")}
     size="lg"
   >
     <div class="sp-modal-form">
       <div class="sp-form-group">
-        <label for="env-name" class="sp-form-label">Название окружения *</label>
+        <label for="env-name" class="sp-form-label">{i18n.t("environments.name_label")}</label>
         <input
           id="env-name"
           type="text"
-          placeholder="Например: Modern Web (Node 22), Python Data Lab, Fintech API..."
+          placeholder={i18n.t("environments.name_placeholder")}
           bind:value={modalName}
           class="sp-form-input"
         />
       </div>
 
       <div class="sp-form-group">
-        <label for="env-desc" class="sp-form-label">Описание (необязательно)</label>
+        <label for="env-desc" class="sp-form-label">{i18n.t("environments.description_label")}</label>
         <input
           id="env-desc"
           type="text"
-          placeholder="Краткое описание назначения этой среды..."
+          placeholder={i18n.t("environments.description_placeholder")}
           bind:value={modalDescription}
           class="sp-form-input"
         />
@@ -667,7 +667,7 @@
 
       <!-- Mode Selector -->
       <div class="sp-form-group">
-        <span class="sp-form-label">Тип изоляции</span>
+        <span class="sp-form-label">{i18n.t("environments.isolation_type")}</span>
         <div class="sp-isolation-options">
           <label class="sp-option-card" class:selected={modalIsolationMode === "isolated"}>
             <input
@@ -679,11 +679,11 @@
             />
             <div class="sp-option-text">
               <div class="sp-option-head">
-                <span class="sp-option-title">Изолированный бокс (Рекомендуется)</span>
+                <span class="sp-option-title">{i18n.t("environments.isolated")}</span>
                 <Badge tone="amber">Sandboxed</Badge>
               </div>
               <p class="sp-option-desc">
-                Создаёт выделенную директорию среды со своими бинарниками, изолирует <code>npm -g</code> и <code>PYTHONNOUSERSITE</code>. Никаких конфликтов с системой!
+                {i18n.t("environments.isolated_description")}
               </p>
             </div>
           </label>
@@ -698,11 +698,11 @@
             />
             <div class="sp-option-text">
               <div class="sp-option-head">
-                <span class="sp-option-title">Глобальное системное окружение</span>
+                <span class="sp-option-title">{i18n.t("environments.global")}</span>
                 <Badge tone="neutral">Host</Badge>
               </div>
               <p class="sp-option-desc">
-                Использует системные пути из PATH без изоляции директорий.
+                {i18n.t("environments.global_description")}
               </p>
             </div>
           </label>
@@ -713,8 +713,8 @@
       <div class="sp-form-group">
         <div class="sp-envvars-header">
           <div>
-            <span class="sp-form-label">Инструменты и рантаймы</span>
-            <span class="sp-form-hint">Инструменты, для которых окружение создаст локальные шиммы и изолирует пакеты</span>
+            <span class="sp-form-label">{i18n.t("environments.tools_and_runtimes")}</span>
+            <span class="sp-form-hint">{i18n.t("environments.tools_hint")}</span>
           </div>
           <div class="sp-envvars-header-actions">
             <Button
@@ -724,16 +724,16 @@
               loading={detectingTools}
               onclick={handleAutoDetectTools}
             >
-              Автоопределение
+              {i18n.t("environments.auto_detect")}
             </Button>
             <Button variant="ghost" size="sm" icon="plus" onclick={addToolRow}>
-              Добавить
+              {i18n.t("environments.add_tool")}
             </Button>
           </div>
         </div>
 
         {#if modalTools.length === 0}
-          <p class="sp-muted-text">Инструменты не заданы. Нажмите «Автоопределение», чтобы обнаружить Node, Python, Cargo, Go и др. в системе.</p>
+          <p class="sp-muted-text">{i18n.t("environments.empty_tools")}</p>
         {:else}
           <div class="sp-tools-modal-table">
             {#each modalTools as row, i}
@@ -746,13 +746,13 @@
                 />
                 <input
                   type="text"
-                  placeholder="Путь к exe (пусто = системный из PATH)"
+                  placeholder={i18n.t("environments.executable_placeholder")}
                   bind:value={row.executable_path}
                   class="sp-form-input tool-path-input"
                 />
                 <input
                   type="text"
-                  placeholder="Версия (20.x)"
+                  placeholder={i18n.t("environments.version_placeholder")}
                   bind:value={row.version}
                   class="sp-form-input tool-ver-input"
                 />
@@ -760,7 +760,7 @@
                   type="button"
                   class="sp-row-del-btn"
                   onclick={() => removeToolRow(i)}
-                  title="Удалить инструмент"
+                  title={i18n.t("environments.remove_tool")}
                 >
                   ✕
                 </button>
@@ -773,28 +773,28 @@
       <!-- Extra Environment Variables -->
       <div class="sp-form-group">
         <div class="sp-envvars-header">
-          <span class="sp-form-label">Пользовательские переменные окружения (.env)</span>
+          <span class="sp-form-label">{i18n.t("environments.env_vars")}</span>
           <Button variant="ghost" size="sm" icon="plus" onclick={addEnvVarRow}>
-            Добавить переменную
+            {i18n.t("environments.add_variable")}
           </Button>
         </div>
 
         {#if modalEnvVars.length === 0}
-          <p class="sp-muted-text">Переменные окружения не заданы. Можно добавить например <code>PORT=4000</code> или <code>DATABASE_URL</code>.</p>
+          <p class="sp-muted-text">{i18n.t("environments.empty_variables")}</p>
         {:else}
           <div class="sp-envvars-table">
             {#each modalEnvVars as row, i}
               <div class="sp-envvar-row">
                 <input
                   type="text"
-                  placeholder="Имя (напр. PORT)"
+                  placeholder={i18n.t("environments.var_name")}
                   bind:value={row.key}
                   class="sp-form-input env-key-input"
                 />
                 <span class="sp-eq">=</span>
                 <input
                   type="text"
-                  placeholder="Значение (напр. 3000)"
+                  placeholder={i18n.t("environments.var_value")}
                   bind:value={row.value}
                   class="sp-form-input env-val-input"
                 />
@@ -802,7 +802,7 @@
                   type="button"
                   class="sp-row-del-btn"
                   onclick={() => removeEnvVarRow(i)}
-                  title="Удалить строку"
+                  title={i18n.t("environments.remove_variable")}
                 >
                   ✕
                 </button>
@@ -815,10 +815,10 @@
 
     {#snippet footer()}
       <Button variant="ghost" onclick={() => showModal = false}>
-        Отмена
+        {i18n.t("environments.cancel")}
       </Button>
       <Button variant="primary" loading={saving} onclick={handleSave}>
-        {editingId ? "Сохранить изменения" : "Создать среду"}
+        {editingId ? i18n.t("environments.save_changes") : i18n.t("environments.create")}
       </Button>
     {/snippet}
   </Modal>

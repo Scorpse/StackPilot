@@ -1,129 +1,45 @@
-# Архитектура и модули
-
-Техническое описание модулей приложения для разработчиков и интеграторов.
+# Architecture and modules
 
 ## DevLauncher
 
-DevLauncher — центр запуска. Разделы:
+The overview shows the current and recent projects, quick actions, and saved profiles. **Analyze** drafts a profile from the project files. **Profiles** manages saved scenarios. **Processes** starts commands, streams output, and stops managed processes.
 
-| Раздел | Назначение |
-| --- | --- |
-| **Обзор** | текущий проект, недавние проекты, быстрые действия и сохранённые профили |
-| **Анализ** | построение черновика профиля по файлам проекта |
-| **Профили** | просмотр, редактирование, удаление и запуск сохранённых сценариев |
-| **Процессы** | ручной запуск команды, live-вывод, refresh и остановка |
+The launch engine supports legacy `actions` and the newer `steps` dependency graph. Independent steps can run in parallel. A step can run a one-shot command or a long-running service, open a terminal, browser, editor or folder, or wait for a port, URL, or Docker. The engine reports step progress and an overall result of `succeeded`, `partial_success`, `failed`, or `cancelled`. Logs are bounded. PID tracking identifies an `exact`, `terminal_wrapper`, `approximate`, or `detached` process. Stop cancels a run and its managed process trees.
 
-Возможности движка:
-
-- анализирует проект и создаёт **черновик профиля запуска**;
-- сохраняет профиль в JSON и запускает его повторно;
-- поддерживает старый формат `actions` и новый графовый формат `steps`;
-- запускает независимые шаги параллельно, а зависимые — после предшественников;
-- выполняет одноразовые команды и долгоживущие сервисы;
-- открывает нативное окно терминала, URL, IDE или папку;
-- ждёт порт, URL или готовность Docker daemon;
-- показывает прогресс каждого шага и итог `succeeded`, `partial_success`, `failed` или `cancelled`;
-- останавливает процессы всего запуска вместе с деревом дочерних процессов;
-- хранит логи ограниченного размера;
-- показывает качество PID: `exact`, `terminal_wrapper`, `approximate`, `detached`.
-
-### Что проверяет анализатор
-
-`FsProjectAnalyzer` ищет признаки проекта на глубину до 8 директорий: manifest/lock-файлы, entry points, Docker/compose, конфигурацию IDE, тесты и CI. Каждое предположение получает confidence (`high`, `medium`, `low`) и diagnostic. Анализ создаёт **draft**, а не безусловно правильный план — просмотрите его перед сохранением.
-
-Анализ читает структуру и конфигурацию, но не запускает install-команды и не изменяет файлы. Результат включает найденные технологии, версии (если их можно вывести), существующие и отсутствующие конфигурации, признаки Git/CI/tests/README/license, подсказки типа проекта и diagnostics.
-
-Если уверенность `low`, воспринимайте её как подсказку. Например, порт `3000` может быть выведен из типичного стека, но не гарантирует, что ваш сервер слушает именно его.
+`FsProjectAnalyzer` looks up to eight directory levels deep for manifests, lockfiles, entry points, Docker and Compose files, IDE configuration, tests, and CI. It reports technologies, inferable versions, missing configuration, and project hints with diagnostics and confidence ratings. Analysis reads project files without running installers or changing the repository. Review the draft before saving it, especially inferred commands and ports.
 
 ## Project Creator
 
-Мастер создаёт `WizardContext`, валидирует выбранный стек и строит `ExecutionPlan`.
+The wizard assembles a `WizardContext`, validates the stack, and generates an `ExecutionPlan`.
 
-1. Выберите тип: REST API, web app, desktop/mobile, CLI, bot, library, data pipeline, embedded, browser extension или custom.
-2. Укажите backend/frontend языки и фреймворки.
-3. Добавьте базы, кэш, брокеры, observability, тесты и инструменты.
-4. Выберите Docker или локальную инфраструктуру.
-5. Включите Git, VS Code, CI и testing при необходимости.
-6. Посмотрите recipe preview и file preview.
-7. Подтвердите выполнение. Команды и запись файлов отображаются событиями по шагам.
+1. Select a project type, including API, web, desktop, mobile, CLI, bot, library, data pipeline, embedded, browser extension, or custom.
+2. Select languages, frameworks, infrastructure services, and tools.
+3. Choose Docker or local infrastructure and add Git, VS Code, CI, or tests when needed.
+4. Review the recipe and file previews. A step’s `overwrite` flag controls whether an existing file can be replaced.
+5. Confirm execution. The wizard reports file writes and command activity for each step and can open the result in DevLauncher.
 
-Генерация не стирает существующие файлы молча: шаги имеют `overwrite`, а preview показывает, что будет создано, изменено или пропущено. Для существующей папки сделайте backup и проверьте preview.
-
-Возможности:
-
-- пошаговый wizard с типом проекта, языками, backend/frontend-фреймворками и инструментами;
-- готовые пресеты для API, full-stack, desktop/mobile, CLI, Telegram-ботов, ETL, browser extension и других сценариев;
-- проверка совместимости и предупреждения о спорных комбинациях;
-- рекомендации недостающих языков и инструментов;
-- анализ существующего проекта;
-- preview рецепта и дерева файлов до записи на диск;
-- генерация файлов, директорий, шаблонов и конфигурации;
-- опции Git init, VS Code, тестов, CI и Docker;
-- передача созданного проекта в DevLauncher.
-
-### Система совместимости инструментов
-
-Project Creator включает интеллектуальную валидацию совместимости инструментов:
-
-- **Контроль зависимостей:** ловит недостающие зависимости (например, Alembic без SQLAlchemy);
-- **Обнаружение пересечения ответственностей:** предупреждает, когда несколько инструментов выполняют одну роль (например, Django ORM + SQLAlchemy);
-- **Предупреждения фреймворк↔инструмент:** объясняет, когда инструменты дублируют функции фреймворка;
-- **Постепенная обратная связь:** ошибки блокируют генерацию, предупреждения информируют.
-
-Подробная документация — в [`src-tauri/src/modules/project_creator/docs/`](../src-tauri/src/modules/project_creator/docs/):
-
-- `TOOL_METADATA.md` — справочник по схеме метаданных;
-- `COMPATIBILITY_RULES.md` — логика валидации и правила решений;
-- `IMPLEMENTATION_CHECKLIST.md` — статус реализации и известные ограничения.
+The compatibility checks catch missing dependencies, tools that perform the same role, and framework features duplicated by an additional tool. Errors block generation. Warnings provide information for review. The [Project Creator technical documentation](../src-tauri/src/modules/project_creator/docs/) contains the metadata schema, compatibility rules, and implementation status.
 
 ## Toolchain
 
-Toolchain разделён на три режима.
+- **Manage Everything** shows catalog definitions and the state detected on the machine. Filters cover status, health, category, origin, capabilities, and execution method.
+- **Build Environment** uses project type, languages, and frameworks to calculate required, recommended, and optional tools. The plan accounts for dependencies, conflicts, and services handled by project Compose files.
+- **Tool Marketplace** shows the OS-specific catalog. Scan first to enable filters based on installed versions, health, and origin.
 
-### Manage everything
+Scanning is read-only. Detection uses PATH, version probes, known paths, and the Windows registry on Windows. Health states distinguish missing tools, broken PATH, unhealthy installs, updates, manual installs, and Docker alternatives. The environment also gets a health score from 0 to 100.
 
-Показывает все определения каталога и состояние на вашей машине. Фильтры работают по статусу, health, категории, происхождению, возможностям и способу исполнения.
-
-### Build environment
-
-Выберите тип проекта, языки и фреймворки. StackPilot рассчитывает обязательные, рекомендуемые и optional инструменты, учитывает зависимости и конфликты и предлагает план. Инфраструктурные сервисы можно установить локально или оставить Docker Compose проекта.
-
-### Tool Marketplace
-
-Каталог доступных для текущей ОС инструментов работает даже без scan. Runtime-фильтры (состояние, health, происхождение) появятся только после scan.
-
-### Установка и права
-
-Перед стартом показываются источник, примерный размер, необходимость администратора и checksum, если он объявлен в каталоге. Инструменты с `manual_install` не устанавливаются автоматически: для них показываются инструкции.
-
-Возможности:
-
-- каталог инструментов с minimum/recommended версиями, зависимостями, конфликтами и источниками;
-- read-only scan без установки ПО;
-- обнаружение по `PATH`, version probe, известным путям и (только на Windows) реестру;
-- честные состояния: установлен, отсутствует, нездоров, PATH broken, доступно обновление, manual only, Docker и другие;
-- оценка здоровья окружения от 0 до 100;
-- план установки, обновления, исправления PATH и health-check;
-- Windows: winget и официальные установщики; macOS: Homebrew; Linux: apt, dnf, pacman, zypper и официальные скрипты;
-- разрешение актуальных версий через `VersionResolver` (GitHub releases/latest и другие источники);
-- Docker как альтернатива локальной установке инфраструктурных сервисов;
-- отмена, повтор и восстановление прерванных заданий;
-- ручное добавление уже установленного инструмента (`adopt`).
+Before installation, the plan reports the source, approximate size, elevation requirement, and checksum when available. Tools marked `manual_install` show instructions. Windows uses winget and official installers. macOS uses Homebrew. Linux uses the supported distribution package manager or official scripts. `VersionResolver` checks current versions from sources such as GitHub Releases. Jobs can be cancelled, retried, and recovered. Existing tools can be adopted manually.
 
 ## Workspace
 
-Workspace — представление текущего проекта, а не отдельная копия файлов. Закрытие Workspace не удаляет проект и не останавливает внешние процессы автоматически.
+Workspace opens the current project files. Closing it does not delete the project or automatically stop externally launched processes.
 
-- **Overview:** сводка проекта и активных процессов.
-- **Runtime:** статусы `starting`, `running`, `ready`, `exited`, `crashed`, `killed`, `timed_out`, `cancelled` и др.
-- **Session:** время сессии, количество процессов и ошибок.
-- **Logs:** захваченные логи процессов.
-- **Problems:** ошибки из реального состояния процессов.
-- **Info:** профиль, путь, стек и метаданные.
-- **Files:** чтение/запись файлов в пределах выбранного проекта.
+- **Overview** shows the project and active processes.
+- **Runtime** shows process states such as `starting`, `running`, `ready`, `exited`, `crashed`, `killed`, `timed_out`, and `cancelled`.
+- **Session** shows elapsed time, process count, and errors.
+- **Logs** shows captured process output. **Problems** derives messages from process state.
+- **Info** shows the profile, path, stack, and metadata. **Files** reads and writes within the selected project.
 
-## Настройки
+## Settings
 
-Вкладки **Личные**, **Система**, **Отображение**, **Поведение**, **ИИ** и **О приложении** позволяют настроить пути к VS Code/браузеру/терминалу, тему, язык, размер шрифта, accent color, автосохранение, восстановление маршрута, локальные личные метаданные и пользовательские GUI-приложения.
-
-Раздел ИИ пока является фундаментом интерфейса: поля сохраняются, но запросы к OpenAI/Anthropic/Ollama/custom endpoint не отправляются, ключи не проверяются и assistant не активируется от одного переключателя.
+Settings controls application paths, theme, language, font size, accent color, autosave, route restoration, local profile information, and custom GUI applications. The AI panel saves its fields locally. The current application does not send requests to OpenAI, Anthropic, Ollama, or custom endpoints from this panel.

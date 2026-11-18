@@ -217,9 +217,9 @@
   async function openEnvTerminalSafe(bindingId: string) {
     try {
       await openEnvironmentTerminal(bindingId);
-      notifySuccess("Терминал", "Терминал окружения запущен");
+      notifySuccess(i18n.t("workspace.env_terminal"), i18n.t("workspace.env_terminal_started"));
     } catch (e) {
-      notifyError("Ошибка терминала", String(e));
+      notifyError(i18n.t("workspace.env_terminal_failed"), String(e));
     }
   }
 
@@ -234,7 +234,7 @@
     try {
       allEnvironments = await listEnvironments();
     } catch (e) {
-      notifyError("Ошибка загрузки сред", String(e));
+      notifyError(i18n.t("workspace.env_load_failed"), String(e));
     } finally {
       loadingEnvs = false;
     }
@@ -249,10 +249,10 @@
       }
       const updated = await bindProjectToEnvironment(targetEnv.binding_id, project.project_path);
       projectEnv = updated;
-      notifySuccess("Окружение переключено", `Проект использует среду «${targetEnv.name || targetEnv.binding_id}»`);
+      notifySuccess(i18n.t("workspace.env_switched"), i18n.t("workspace.env_switched_detail", { name: targetEnv.name || targetEnv.binding_id }));
       showEnvSwitcherModal = false;
     } catch (e) {
-      notifyError("Ошибка переключения среды", String(e));
+      notifyError(i18n.t("workspace.env_switch_failed"), String(e));
     } finally {
       switchingEnv = false;
     }
@@ -263,11 +263,11 @@
     try {
       const res = await exportStandaloneEnvironment(projectEnv.binding_id, project.project_path);
       notifySuccess(
-        "Standalone скрипты экспортированы",
-        `Созданы ${res.created_files.join(", ")} в папке проекта`
+        i18n.t("workspace.env_exported"),
+        i18n.t("workspace.env_exported_detail", { files: res.created_files.join(", ") })
       );
     } catch (e) {
-      notifyError("Ошибка экспорта", String(e));
+      notifyError(i18n.t("workspace.env_export_failed"), String(e));
     }
   }
 
@@ -275,9 +275,9 @@
     if (!project?.project_path || !projectEnv) return;
     try {
       await configureVsCodeEnvironment(projectEnv.binding_id, project.project_path);
-      notifySuccess("VS Code", `Конфигурация .vscode/settings.json обновлена для «${projectEnv.name}»`);
+      notifySuccess("VS Code", i18n.t("workspace.env_vscode_detail", { name: projectEnv.name || projectEnv.binding_id }));
     } catch (e) {
-      notifyError("Ошибка настройки VS Code", String(e));
+      notifyError(i18n.t("workspace.env_vscode_failed"), String(e));
     }
   }
 
@@ -287,7 +287,7 @@
     creatingEnv = true;
     try {
       const now = new Date().toISOString();
-      const envName = `${project.profile_name || 'Проект'} (Песочница)`;
+      const envName = i18n.t("workspace.env_sandbox_name", { name: project.profile_name || i18n.t("workspace.env_project") });
 
       const toolCandidates = new Set<string>(["git"]);
       for (const tech of (project.stack || [])) {
@@ -341,7 +341,7 @@
         name: envName,
         isolation_mode: "isolated",
         is_default: false,
-        description: `Изолированное окружение для ${project.profile_name || 'проекта'}`,
+        description: i18n.t("workspace.env_sandbox_description", { name: project.profile_name || i18n.t("workspace.env_project_generic") }),
         icon: "box",
         color: "amber",
         project_path: project.project_path,
@@ -361,10 +361,10 @@
       const bound = await bindProjectToEnvironment(saved.binding_id, project.project_path);
       projectEnv = bound;
       allEnvironments = await listEnvironments();
-      notifySuccess("Песочница создана", `Среда «${envName}» привязана к проекту`);
+      notifySuccess(i18n.t("workspace.env_sandbox_created"), i18n.t("workspace.env_sandbox_created_detail", { name: envName }));
       showEnvSwitcherModal = false;
     } catch (e) {
-      notifyError("Ошибка создания среды", String(e));
+      notifyError(i18n.t("workspace.env_sandbox_failed"), String(e));
     } finally {
       creatingEnv = false;
     }
@@ -809,12 +809,12 @@
                 type="button"
                 class="sp-env-switcher-badge"
                 onclick={openEnvSwitcher}
-                title="Нажмите для переключения или настройки среды проекта"
+                title={i18n.t("workspace.env_switch_title")}
               >
                 {#if projectEnv.isolation_mode === "isolated"}
-                  <Badge tone="amber">{projectEnv.name || "Изолированная среда"} ▾</Badge>
+                  <Badge tone="amber">{projectEnv.name || i18n.t("workspace.env_isolated_badge")} ▾</Badge>
                 {:else}
-                  <Badge tone="neutral">{projectEnv.name || "Глобальная среда"} ▾</Badge>
+                  <Badge tone="neutral">{projectEnv.name || i18n.t("workspace.env_global_badge")} ▾</Badge>
                 {/if}
               </button>
             {:else if project.project_path}
@@ -822,9 +822,9 @@
                 type="button"
                 class="sp-env-switcher-badge"
                 onclick={openEnvSwitcher}
-                title="Выбрать или привязать среду для проекта"
+                title={i18n.t("workspace.env_link_title")}
               >
-                <Badge tone="neutral">Среда: не привязана ▾</Badge>
+                <Badge tone="neutral">{i18n.t("workspace.env_unbound_badge")}</Badge>
               </button>
             {/if}
           </div>
@@ -845,11 +845,11 @@
             <div class="sp-hero-env-tools">
               <span class="sp-hero-env-label">
                 <Icon name="wrench" size={12} />
-                Инструменты среды:
+                {i18n.t("workspace.env_tools_label")}
               </span>
               <div class="sp-hero-tool-chips">
                 {#each Object.entries(projectEnv.tool_overrides) as [tId, tOverride]}
-                  <span class="sp-hero-tool-chip" title={tOverride.executable_path || "Системный"}>
+                  <span class="sp-hero-tool-chip" title={tOverride.executable_path || i18n.t("workspace.env_system_tool")}>
                     <span class="sp-tool-name">{tId}</span>
                     {#if tOverride.version}
                       <span class="sp-tool-ver">v{tOverride.version}</span>
@@ -877,17 +877,17 @@
                 variant="secondary"
                 icon="terminal"
                 onclick={() => openEnvTerminalSafe(projectEnv!.binding_id)}
-                label="Терминал среды"
+                label={i18n.t("workspace.env_terminal_label")}
               >
-                Терминал среды
+                {i18n.t("workspace.env_terminal_label")}
               </Button>
               <Button
                 variant="secondary"
                 icon="download"
                 onclick={handleExportStandaloneFromWorkspace}
-                label="Экспортировать автономные скрипты активации (activate.bat, activate.sh)"
+                label={i18n.t("workspace.env_export_label")}
               >
-                Экспорт среды
+                {i18n.t("workspace.env_export_short")}
               </Button>
             {/if}
             <Button
@@ -1250,16 +1250,16 @@
   <Modal
     open={showEnvSwitcherModal}
     onclose={() => showEnvSwitcherModal = false}
-    title="Окружение проекта"
-    description="Выберите среду выполнения для текущего проекта. Инструменты и переменные будут применены автоматически."
+    title={i18n.t("workspace.env_dialog_title")}
+    description={i18n.t("workspace.env_dialog_description")}
     size="md"
   >
     {#if loadingEnvs}
-      <LoadingState label="Загрузка доступных сред…" />
+      <LoadingState label={i18n.t("workspace.env_loading")} />
     {:else}
       <div class="sp-env-notice">
         <Icon name="info" size={14} />
-        <span>Песочница изолирует установку пакетов (<code>npm -g</code>, <code>pip</code>, <code>cargo</code>) и пути инструментов. Мгновенный запуск через системные шиммы без виртуальных машин.</span>
+        <span>{i18n.t("workspace.env_sandbox_hint")}</span>
       </div>
 
       <div class="sp-env-switcher-list">
@@ -1279,12 +1279,12 @@
                 <div class="sp-env-switcher-name">
                   <span>{env.name || env.binding_id}</span>
                   {#if env.is_default}
-                    <Badge tone="cyan">Система</Badge>
+                    <Badge tone="cyan">{i18n.t("workspace.env_system_badge")}</Badge>
                   {:else if env.isolation_mode === "isolated"}
-                    <Badge tone="amber">Изолированная</Badge>
+                    <Badge tone="amber">{i18n.t("workspace.env_dialog_isolated")}</Badge>
                   {/if}
                   {#if isActive}
-                    <Badge tone="lime">Активно ✓</Badge>
+                    <Badge tone="lime">{i18n.t("workspace.env_active_badge")}</Badge>
                   {/if}
                 </div>
                 {#if env.description}
@@ -1309,8 +1309,8 @@
       {#if !projectEnv || projectEnv.isolation_mode !== "isolated"}
         <div class="sp-env-switcher-create-banner">
           <div class="sp-create-banner-info">
-            <span class="sp-create-banner-title">Нужна чистая песочница для проекта?</span>
-            <span class="sp-create-banner-sub">Создаст изолированное окружение с локальными шиммами (.cmd/.ps1) и привяжет к проекту.</span>
+            <span class="sp-create-banner-title">{i18n.t("workspace.env_create_prompt")}</span>
+            <span class="sp-create-banner-sub">{i18n.t("workspace.env_create_detail")}</span>
           </div>
           <Button
             variant="primary"
@@ -1319,7 +1319,7 @@
             loading={creatingEnv}
             onclick={handleCreateIsolatedEnvForProject}
           >
-            Создать песочницу
+            {i18n.t("workspace.env_create")}
           </Button>
         </div>
       {/if}
@@ -1332,7 +1332,7 @@
               size="sm"
               icon="terminal"
               onclick={handleConfigureVsCodeFromWorkspace}
-              label="Обновить .vscode/settings.json"
+              label={i18n.t("workspace.env_update_vscode")}
             >
               VS Code
             </Button>
@@ -1341,9 +1341,9 @@
               size="sm"
               icon="download"
               onclick={handleExportStandaloneFromWorkspace}
-              label="Экспортировать автономные скрипты"
+              label={i18n.t("workspace.env_export_standalone")}
             >
-              Экспорт
+              {i18n.t("workspace.env_export")}
             </Button>
           {/if}
         </div>
@@ -1355,7 +1355,7 @@
             goto("/environments");
           }}
         >
-          Все окружения →
+          {i18n.t("workspace.env_open_all")}
         </Button>
       </div>
     {/if}
@@ -2257,12 +2257,6 @@
     font-size: var(--sp-fs-xs);
     line-height: 1.45;
     margin-bottom: var(--sp-3);
-  }
-  .sp-env-notice code {
-    background: var(--sp-bg-3);
-    padding: 1px 4px;
-    border-radius: 3px;
-    font-family: var(--sp-font-mono);
   }
 
   .sp-env-switcher-tools {

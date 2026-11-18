@@ -596,7 +596,7 @@
   <!-- ===== Категории инструментов (Секционные вкладки) + Результаты в одной строке ===== -->
   <div class="categories-bar">
     {#if sectionGroups.length > 1 || updateTools.length > 0}
-      <div class="section-tabs" role="tablist" aria-label="Секции инструментов">
+      <div class="section-tabs" role="tablist" aria-label={i18n.t("tc.ui.tool_sections")}>
         <button
           type="button"
           role="tab"

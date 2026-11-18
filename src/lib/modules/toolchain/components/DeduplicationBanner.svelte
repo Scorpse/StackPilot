@@ -71,15 +71,15 @@
     <span class="store-badge">Shared Store</span>
 
     <div class="strip-metrics">
-      <span class="metric-chip emerald" title="Сэкономлено места за счёт дедупликации версий">
+      <span class="metric-chip emerald" title={i18n.t("tc.dedupe.saved_title")}>
         <Icon name="sparkles" size={11} />
-        <span>{report ? formatBytes(report.total_disk_saved_bytes) : "0 MB"} сэкономлено</span>
+        <span>{i18n.t("tc.dedupe.saved", { value: report ? formatBytes(report.total_disk_saved_bytes) : "0 MB" })}</span>
       </span>
       <span class="metric-chip neutral">
-        <span>{report?.total_shared_versions ?? 0} версий</span>
+        <span>{i18n.t("tc.dedupe.versions", { value: report?.total_shared_versions ?? 0 })}</span>
       </span>
       <span class="metric-chip cyan">
-        <span>{report?.total_bindings_using_shared ?? 0} песочниц</span>
+        <span>{i18n.t("tc.dedupe.sandboxes", { value: report?.total_bindings_using_shared ?? 0 })}</span>
       </span>
     </div>
   </div>
@@ -91,7 +91,7 @@
       icon="trash"
       loading={pruning}
       onclick={handlePrune}
-      label="Удалить неиспользуемые версии"
+      label={i18n.t("tc.dedupe.prune")}
     >
       {i18n.t("tc.dedup.prune_btn" as TranslationKey)}
     </Button>
@@ -99,9 +99,9 @@
       type="button"
       class="strip-toggle"
       onclick={() => (expanded = !expanded)}
-      title={expanded ? "Скрыть детали" : "Показать детали"}
+      title={expanded ? i18n.t("tc.dedupe.hide") : i18n.t("tc.dedupe.show")}
     >
-      <span>Детали</span>
+      <span>{i18n.t("tc.dedupe.details")}</span>
       <Icon name={expanded ? "chevronUp" : "chevronDown"} size={12} />
     </button>
   </div>

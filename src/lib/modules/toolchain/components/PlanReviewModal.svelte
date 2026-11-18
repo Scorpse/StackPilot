@@ -195,7 +195,7 @@
         try {
           await Promise.race([
             toolchain.runHealthChecks([...request.toolIds]),
-            new Promise((_, reject) => setTimeout(() => reject(new Error("Таймаут точечной проверки")), 15000))
+            new Promise((_, reject) => setTimeout(() => reject(new Error(i18n.t("tc.plan.probe_timeout"))), 15000))
           ]);
         } catch {
           /* не фатально: план строится дальше */

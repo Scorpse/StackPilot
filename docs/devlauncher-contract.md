@@ -1,17 +1,15 @@
-# Профили запуска V2 — контракт
+# V2 launch profile contract
 
-Формат профиля, типы шагов и политики запуска. Документ для разработчиков и интеграторов.
+StackPilot saves profiles as JSON in `<app_data>/profiles/<name>.json`. Find the application data directory in **Settings → System → App Data Directory**.
 
-Профиль хранится как JSON в `<app_data>/profiles/<name>.json`. Путь к папке данных виден в **Настройки → Система → Папка данных приложения**.
-
-## Минимальный пример
+## Example
 
 ```json
 {
   "schema_version": "2",
   "id": "api-stack",
   "name": "FastAPI + PostgreSQL",
-  "description": "Локальный backend и база данных",
+  "description": "Local backend and database",
   "project_root": "C:/work/my-api",
   "preferred_ide": "Vscode",
   "steps": [
@@ -51,77 +49,50 @@
 }
 ```
 
-## Поля профиля
+## Profile fields
 
-| Поле | Смысл |
+| Field | Purpose |
 | --- | --- |
-| `schema_version` | сейчас `2`; старые файлы с `actions` мигрируются прозрачно |
-| `id` | стабильный идентификатор профиля |
-| `name`, `description` | имя и пояснение в UI |
-| `project_root` | базовая рабочая директория для относительных путей |
-| `environment_binding_id` | привязка к переопределениям окружения |
-| `preferred_ide` | VS Code, PyCharm, GoLand, IDEA, WebStorm, Xcode, Visual Studio или custom |
-| `steps` | узлы графа запуска |
+| `schema_version` | The current version is `2`. Older profiles with `actions` are migrated when accessed through the V2 API. |
+| `id` | Stable profile identifier. |
+| `name`, `description` | User-facing profile name and description. |
+| `project_root` | Base directory for relative paths. |
+| `environment_binding_id` | Link to project environment overrides. |
+| `preferred_ide` | VS Code, PyCharm, GoLand, IDEA, WebStorm, Xcode, Visual Studio, or a custom editor. |
+| `steps` | Nodes in the launch dependency graph. |
 
-У шага есть `id`, `label`, `enabled`, `kind`, `depends_on`, `working_directory`, `environment`, `visibility`, `execution_mode`, `completion`, `timeout`, `failure_policy`, `retry_policy` и `metadata`.
+A step can include `id`, `label`, `enabled`, `kind`, `depends_on`, `working_directory`, `environment`, `visibility`, `execution_mode`, `completion`, `timeout`, `failure_policy`, `retry_policy`, and `metadata`.
 
-## Типы шагов
+## Step types
 
-- `run_command` — команда с захваченным выводом;
-- `run_script` — shell-скрипт (`sh`, `bash`, `zsh`, `fish`, `cmd`, `powershell`, `pwsh`);
-- `open_application` — IDE, Docker Desktop или другое GUI-приложение;
-- `open_url` — открыть адрес в браузере;
-- `wait_for_port` — ждать TCP-порт;
-- `wait_for_url` — ждать HTTP URL;
-- `wait_for_docker` — ждать ответа Docker daemon;
-- `delay` — фиксированная пауза;
-- `open_terminal` — открыть нативный терминал;
-- `open_folder` — открыть папку системным приложением.
+- `run_command` runs a command.
+- `run_script` runs a script with `sh`, `bash`, `zsh`, `fish`, `cmd`, `powershell`, or `pwsh`.
+- `open_application`, `open_url`, `open_terminal`, and `open_folder` launch the corresponding external application.
+- `wait_for_port`, `wait_for_url`, and `wait_for_docker` wait for TCP, HTTP, or Docker readiness.
+- `delay` pauses for a fixed time.
 
-## Visibility и execution mode
+## Visibility and execution modes
 
-- `captured` — stdout/stderr попадают в логи StackPilot;
-- `visible_terminal` — команда выполняется в нативном окне терминала;
-- `detached` — GUI/внешний процесс запускается без захвата вывода;
-- `one_shot` — шаг завершается после успешного выхода процесса;
-- `long_running` — сервис остаётся активным до остановки или падения.
+`captured` sends stdout and stderr to StackPilot logs. `visible_terminal` runs in a native terminal window. `detached` starts an external process without capture. A `one_shot` step completes on successful exit. A `long_running` service remains active until it exits or is stopped.
 
-## Платформенное поведение видимых терминалов
+- Windows uses `cmd /K` or Windows Terminal and stops the launcher's process tree with `taskkill /T`.
+- Linux selects a terminal via `xdg-terminal-exec` or a supported fallback such as Ptyxis, GNOME Terminal, Konsole, or `x-terminal-emulator`. It runs the command through `sh -c` and keeps the window open with `exec $SHELL`. The command records its process group so StackPilot can stop it after the terminal launcher exits.
+- macOS uses Terminal.app or iTerm2 via `osascript`.
 
-- **Windows** — `cmd /K` / Windows Terminal: окно остаётся открытым, а
-  остановка идёт по дереву процессов лаунчера (`taskkill /T`).
-- **Linux** — терминал выбирается через freedesktop-хелпер
-  `xdg-terminal-exec` (далее ptyxis, gnome-terminal, konsole,
-  `x-terminal-emulator`, …), команда выполняется в `sh -c`, а окно
-  удерживается интерактивной оболочкой (`exec $SHELL`) — как `cmd /K` на
-  Windows. Лаунчер терминала завершается сразу после открытия окна, поэтому
-  команда записывает свою process group в pid-файл: по нему работают
-  «Остановить» и «Отмена», иначе dev-сервер продолжал бы работать.
-- **macOS** — Terminal.app / iTerm2 через `osascript`; окно удерживается так
-  же.
-- Вывод шагов `visible_terminal` в логи не захватывается (он остаётся в окне
-  терминала). Исключение — шаг docker compose: его вывод дополнительно
-  пишется в sidecar-лог, чтобы реальная причина ошибки («port is already
-  allocated», сломанный Dockerfile, …) попадала в отчёт о запуске.
+Output from a visible-terminal step stays in that terminal. Docker Compose steps also write a sidecar log so errors such as a busy port or invalid Dockerfile are available in the run report.
 
-## Политика завершения и ошибок
+## Completion and failure policies
 
-Completion policy может быть `exit_success`, `process_started`, `port_open`, `url_ready`, `delay_elapsed`, `external_launch_accepted` или `manual`. Ошибка шага обрабатывается явно:
+A step can complete with `exit_success`, `process_started`, `port_open`, `url_ready`, `delay_elapsed`, `external_launch_accepted`, or `manual`. On failure, `stop_run` stops the run and its managed processes, `skip_dependents` skips dependent steps, and `warn_and_continue` continues with a `partial_success` result.
 
-- `stop_run` — остановить run и его управляемые процессы;
-- `skip_dependents` — пропустить зависимые шаги;
-- `warn_and_continue` — продолжить и получить `partial_success`.
+Dependencies must refer to existing step IDs and form an acyclic graph. Validation checks for empty commands, invalid ports or URLs, incompatible shells, and dependency cycles.
 
-Зависимости должны ссылаться на существующие ID и не образовывать цикл. Валидация проверяет пустые команды, некорректные порты/URL, несовместимый shell и циклы до запуска.
+## Legacy profiles
 
-## Обратная совместимость
+The legacy API supports the flat `actions` array. V2 reads those actions as sequential steps and saves the profile in V2 format. Retain `actions` when a legacy integration still reads them.
 
-Старый формат с плоским массивом `actions` поддерживается legacy API. При обращении через V2 действия превращаются в последовательные шаги, а при сохранении новый формат остаётся V2. Не удаляйте `actions` вручную, если профиль используют старые интеграции.
+## Project environments
 
-## Окружения проекта и bindings
+An `EnvironmentBinding` can specify paths to tools like Python, Node, or Cargo, extra PATH entries, environment variables for installation or removal, an editor preference, and an absolute project path. StackPilot saves it as `<app_data>/project_environments/<binding_id>.json` and overlays it when launching the project. Missing or relative executable paths produce warnings.
 
-`EnvironmentBinding` позволяет не менять глобальную систему ради одного проекта. Binding может содержать путь конкретного `python`, `node`, `cargo` и другого executable, дополнительные PATH entries, переменные для установки/удаления, рекомендуемый IDE и привязку к абсолютному пути проекта.
-
-Binding хранится в `<app_data>/project_environments/<binding_id>.json` и применяется как overlay при запуске. Относительные и отсутствующие executable дают warning. Это удобно для нескольких версий Node/Python, SDK в нестандартных каталогах и portable toolchain.
-
-Реализация: [`src-tauri/src/modules/project_environment/`](../src-tauri/src/modules/project_environment/).
+See the [project environment implementation](../src-tauri/src/modules/project_environment/).

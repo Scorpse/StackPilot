@@ -84,7 +84,7 @@
           <div class="builder-head-text">
             {#if store.phase === 0}
               <h2 class="prompt">{i18n.t("create.what_building") as TranslationKey}</h2>
-              <p class="prompt-sub">Выберите базовый тип архитектуры для формирования правильного стека технологий</p>
+              <p class="prompt-sub">{i18n.t("create.architecture_hint")}</p>
             {/if}
             {#if store.phase === 1}
               <div class="phase-title-row">
@@ -104,7 +104,7 @@
             {/if}
             {#if store.phase === 2}
               <h2 class="prompt">{i18n.t("create.review_create_short") as TranslationKey}</h2>
-              <p class="prompt-sub">Проверьте выбранный стек, имя директории и перейдите к генерации проекта</p>
+              <p class="prompt-sub">{i18n.t("create.review_stack_hint")}</p>
             {/if}
           </div>
         </div>
@@ -1114,12 +1114,12 @@
 
       <div class="tt-meta-block">
         <div class="tt-row">
-          <span class="tt-label">Языки:</span>
+          <span class="tt-label">{i18n.t("create.tooltip_languages")}</span>
           <span class="tt-val">{fw.languages.map((l) => store.langLabel(l)).join(", ")}</span>
         </div>
         {#if fw.languages.length > 1}
           <div class="tt-row">
-            <span class="tt-label">Основной язык:</span>
+            <span class="tt-label">{i18n.t("create.tooltip_main_language")}</span>
             <span class="tt-val highlight">{store.langLabel(fw.recommended_language)}</span>
           </div>
         {/if}
@@ -1131,7 +1131,7 @@
           return rf ? i18n.t(rf.label as TranslationKey) : r.framework;
         }).join(", ")}
         <div class="tt-row tt-rec">
-          <span class="tt-label">Рекомендуется с:</span>
+          <span class="tt-label">{i18n.t("create.tooltip_recommended_with")}</span>
           <span class="tt-val">{recNames}</span>
         </div>
       {/if}
@@ -1174,14 +1174,14 @@
       {:else}
         <p class="tt-desc">
           {item.side === "backend"
-            ? "Язык программирования для серверной части проекта."
-            : "Язык программирования для клиентской части проекта."}
+            ? i18n.t("create.tooltip_backend_language")
+            : i18n.t("create.tooltip_frontend_language")}
         </p>
       {/if}
 
       {#if compatFws.length > 0}
         <div class="tt-meta-block">
-          <span class="tt-label">Фреймворки в каталоге ({compatFws.length}):</span>
+          <span class="tt-label">{i18n.t("create.tooltip_framework_count", { count: compatFws.length })}</span>
           <div class="tt-fw-pills">
             {#each compatFws.slice(0, 6) as cfw}
               <span class="tt-fw-pill">{i18n.t(cfw.label as TranslationKey)}</span>

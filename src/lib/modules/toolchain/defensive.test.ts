@@ -3,7 +3,8 @@
 // Регрессия краша «Cannot use 'in' operator to search for
 // 'already_installed' in undefined» и всей семьи `in`-на-undefined.
 // ============================================================
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
+import { i18n } from "../../core/i18n.svelte";
 import {
   engineTaskStatusKind,
   isRecord,
@@ -45,6 +46,10 @@ function taskWith(patch: Record<string, unknown>): unknown {
     ...patch,
   };
 }
+
+beforeAll(() => {
+  i18n.setLocale("ru");
+});
 
 describe("taskActionLabel — малиформированные действия не крашат", () => {
   it("undefined action → «Неизвестное действие» (бывший краш in undefined)", () => {

@@ -12,7 +12,7 @@ export type TranslationDict = typeof ru;
 export type TranslationKey = string;
 
 class I18nService {
-  locale = $state<Locale>('ru');
+  locale = $state<Locale>('en');
 
   /** Все активные словари, адресуемые по id локали. Выбор языка — это
    *  индексация карты, а не ветвление: RU/EN-варианты обрабатываются
@@ -67,8 +67,7 @@ class I18nService {
     if (vars) {
       for (const [k, v] of Object.entries(vars)) {
         // Поддерживаем оба стиля плейсхолдеров: {{k}} и {k}.
-        text = text.replace(new RegExp(`\\{\\{${k}\\}\\}`, 'g'), String(v));
-        text = text.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));
+        text = text.replace(new RegExp(`\\{\\{${k}\\}\\}|\\{${k}\\}`, 'g'), () => String(v));
       }
     }
     return text;

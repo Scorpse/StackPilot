@@ -230,7 +230,7 @@
       <div class="exec-detail">
         <div class="exec-zero-header">
           <p class="exec-name">{zeroStep.title}</p>
-          <span class="sp-zero-pill">Этап 0 · Sandbox</span>
+          <span class="sp-zero-pill">{i18n.t("create.sandbox_stage")}</span>
         </div>
         <p class="exec-zero-sub">{zeroStep.detail}</p>
         {#if zeroStep.tools.length > 0}
@@ -316,16 +316,16 @@
           </div>
           <div>
             <div class="sp-env-title-line">
-              <span class="sp-env-card-title">{createdEnvBinding.name || "Окружение проекта"}</span>
+              <span class="sp-env-card-title">{createdEnvBinding.name || i18n.t("workspace.env_dialog_title")}</span>
               {#if createdEnvBinding.isolation_mode === "isolated"}
-                <Badge tone="amber">Изолированное окружение</Badge>
+                <Badge tone="amber">{i18n.t("create.env_isolated_badge")}</Badge>
               {:else}
-                <Badge tone="cyan">Глобальное системное</Badge>
+                <Badge tone="cyan">{i18n.t("environments.global")}</Badge>
               {/if}
-              <Badge tone="lime">Привязано к проекту ✓</Badge>
+              <Badge tone="lime">{i18n.t("create.env_linked")}</Badge>
             </div>
             <p class="sp-env-card-desc">
-              {createdEnvBinding.description || "Инструменты и переменные зафиксированы в профиле StackPilot для этого проекта"}
+              {createdEnvBinding.description || i18n.t("create.env_binding_description")}
             </p>
           </div>
         </div>
@@ -336,10 +336,10 @@
               type="button"
               class="sp-env-btn sp-btn-term"
               onclick={onopenenvterminal}
-              title="Открыть терминал в изолированном окружении"
+              title={i18n.t("environments.open_terminal")}
             >
               <Icon name="terminal" size={14} />
-              <span>Терминал среды</span>
+              <span>{i18n.t("workspace.env_terminal_label")}</span>
             </button>
           {/if}
           {#if onopenworkspace}
@@ -347,7 +347,7 @@
               type="button"
               class="sp-env-btn sp-btn-ws"
               onclick={onopenworkspace}
-              title="Перейти в Workspace проекта"
+              title={i18n.t("environments.open_workspace")}
             >
               <Icon name="home" size={14} />
               <span>Workspace →</span>
@@ -358,7 +358,7 @@
 
       {#if Object.keys(createdEnvBinding.tool_overrides || {}).length > 0}
         <div class="sp-env-tools-strip">
-          <span class="sp-env-tools-strip-label">Зафиксированные инструменты:</span>
+          <span class="sp-env-tools-strip-label">{i18n.t("create.env_pinned_tools")}</span>
           <div class="sp-env-tool-tags">
             {#each Object.entries(createdEnvBinding.tool_overrides) as [toolId, tool]}
               <span class="sp-env-tool-chip">

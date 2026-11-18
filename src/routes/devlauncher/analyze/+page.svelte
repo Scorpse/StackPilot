@@ -87,7 +87,7 @@
       const selected = await open({
         directory: true,
         multiple: false,
-        title: "Выберите папку проекта",
+        title: i18n.t("analyze.pick_project"),
       });
       if (selected) {
         projectPath = selected;
@@ -98,7 +98,7 @@
         void handleAnalyze();
       }
     } catch (e) {
-      error = `Ошибка выбора папки: ${e}`;
+      error = i18n.t("analyze.pick_error", { error: String(e) });
     }
   }
 
@@ -113,7 +113,7 @@
       draft = await analyzeProjectV2(projectPath);
       markHelpDid(HELP.devlAnalyzeDone);
     } catch (e) {
-      error = `Ошибка анализа: ${e}`;
+      error = i18n.t("analyze.scan_error", { error: String(e) });
     }
     loading = false;
   }
@@ -129,7 +129,7 @@
       markHelpDid(HELP.devlAnalyzeDone);
       savedOk = true;
     } catch (e) {
-      error = `Ошибка сохранения: ${e}`;
+      error = i18n.t("analyze.save_error", { error: String(e) });
     }
     saving = false;
   }
@@ -168,9 +168,9 @@
 
   function confidenceLabel(confidence: string): string {
     switch (confidence) {
-      case "high": return "высокая";
-      case "medium": return "средняя";
-      default: return "низкая";
+      case "high": return i18n.t("analyze.confidence_high_label");
+      case "medium": return i18n.t("analyze.confidence_medium_label");
+      default: return i18n.t("analyze.confidence_low_label");
     }
   }
 
@@ -250,11 +250,11 @@
       <span class="sp-banner-icon"><Icon name="check" size={16} /></span>
       <div class="sp-banner-content">
         <strong>{i18n.t("analyze.saved" as TranslationKey)}</strong>
-        <span class="sp-banner-desc">Профиль запуска успешно сохранён и готов к использованию.</span>
+        <span class="sp-banner-desc">{i18n.t("analyze.profile_saved_detail")}</span>
       </div>
       <div class="sp-banner-actions">
         <Button size="sm" variant="primary" icon="layers" href="/workspace">
-          Перейти в Workspace
+          {i18n.t("analyze.go_workspace")}
         </Button>
         <Button size="sm" variant="secondary" icon="bookmark" href="/devlauncher/profiles">
           {i18n.t("analyze.go_to_profiles" as TranslationKey)}
@@ -275,17 +275,17 @@
           </div>
           <div class="sp-hero-body">
             <h2 class="sp-hero-title">
-              {projectPath ? "Папка готова к анализу" : "Выберите локальный проект для сканирования"}
+              {projectPath ? i18n.t("analyze.folder_ready") : i18n.t("analyze.choose_local")}
             </h2>
             <p class="sp-hero-desc">
-              DevLauncher исследует конфигурационные файлы репозитория, зависимости пакетов, скрипты запуска и сервисы, чтобы автоматически сформировать профиль запуска с последовательностью действий, терминалами и проверками готовности.
+              {i18n.t("analyze.intro_scan")}
             </p>
 
             {#if projectPath}
               <div class="sp-hero-path-box">
                 <span class="sp-path-icon"><Icon name="folder" size={16} /></span>
                 <span class="sp-path-text" title={projectPath}>{projectPath}</span>
-                <Badge tone="lime" dot>Готово</Badge>
+                <Badge tone="lime" dot>{i18n.t("analyze.ready_badge")}</Badge>
               </div>
             {/if}
 
@@ -307,7 +307,7 @@
                   loading={loading}
                   onclick={handleAnalyze}
                 >
-                  {loading ? (i18n.t("analyze.analyzing" as TranslationKey)) : "Запустить анализ проекта"}
+                  {loading ? (i18n.t("analyze.analyzing" as TranslationKey)) : i18n.t("analyze.start_analysis")}
                 </Button>
                 <Button
                   variant="secondary"
@@ -315,7 +315,7 @@
                   icon="folder"
                   onclick={pickFolder}
                 >
-                  Выбрать другую папку
+                  {i18n.t("analyze.change_folder")}
                 </Button>
               {/if}
             </div>
@@ -330,9 +330,9 @@
             <div class="sp-feature-icon-badge" aria-hidden="true">
               <Icon name="layers" size={20} />
             </div>
-            <h4 class="sp-feature-title">Глубокая детекция стека</h4>
+            <h4 class="sp-feature-title">{i18n.t("analyze.detect_title")}</h4>
             <p class="sp-feature-desc">
-              Парсит package.json, Cargo.toml, pyproject.toml, go.mod, docker-compose.yml и распознаёт веб-фреймворки, базы данных и фоновые сервисы.
+              {i18n.t("analyze.detect_detail")}
             </p>
           </div>
         </Card>
@@ -342,9 +342,9 @@
             <div class="sp-feature-icon-badge" aria-hidden="true">
               <Icon name="terminal" size={20} />
             </div>
-            <h4 class="sp-feature-title">Умные шаги запуска</h4>
+            <h4 class="sp-feature-title">{i18n.t("analyze.steps_title")}</h4>
             <p class="sp-feature-desc">
-              Автоматически конфигурирует запуск бэкенда, фронтенда, фоновых воркеров, ожидание готовности сетевых портов и задержки.
+              {i18n.t("analyze.steps_detail")}
             </p>
           </div>
         </Card>
@@ -354,9 +354,9 @@
             <div class="sp-feature-icon-badge" aria-hidden="true">
               <Icon name="bookmark" size={20} />
             </div>
-            <h4 class="sp-feature-title">Профиль DevLauncher</h4>
+            <h4 class="sp-feature-title">{i18n.t("analyze.profile_title")}</h4>
             <p class="sp-feature-desc">
-              Сохраняет профиль в единую экосистему StackPilot для запуска в 1 клик, мониторинга процессов и просмотра объединённых логов.
+              {i18n.t("analyze.profile_detail")}
             </p>
           </div>
         </Card>
@@ -373,10 +373,10 @@
           <div class="sp-profile-info">
             <div class="sp-profile-title-row">
               <h2 class="sp-profile-name">{draft.profile.name}</h2>
-              <Badge tone="cyan">Черновик профиля</Badge>
-              <Badge tone="neutral">{draft.profile.steps.length} действий</Badge>
+              <Badge tone="cyan">{i18n.t("analyze.draft_badge")}</Badge>
+              <Badge tone="neutral">{i18n.t("analyze.action_count", { count: draft.profile.steps.length })}</Badge>
             </div>
-            <p class="sp-profile-desc">{draft.profile.description || "Автоматически сгенерированный профиль проекта"}</p>
+            <p class="sp-profile-desc">{draft.profile.description || i18n.t("analyze.generated_description")}</p>
             <div class="sp-profile-path-chip">
               <Icon name="folder" size={14} />
               <span>{projectPath}</span>
@@ -443,7 +443,7 @@
         {/snippet}
 
         <div class="sp-steps-header">
-          <h3 class="sp-section-heading">Цепочка запуска ({draft.profile.steps.length})</h3>
+          <h3 class="sp-section-heading">{i18n.t("analyze.launch_steps", { count: draft.profile.steps.length })}</h3>
         </div>
 
         {#if showAddPanel}
@@ -451,93 +451,93 @@
             <div class="sp-tpl-grid">
               <div class="sp-tpl-card">
                 <div class="sp-tpl-info">
-                  <span class="sp-tpl-name">Пустой терминал</span>
-                  <span class="sp-tpl-desc">Открыть терминал в корне проекта без выполнения команды</span>
+                  <span class="sp-tpl-name">{i18n.t("analyze.empty_terminal")}</span>
+                  <span class="sp-tpl-desc">{i18n.t("analyze.empty_terminal_detail")}</span>
                 </div>
                 <Button size="sm" variant="secondary" icon="plus" onclick={() => addStep({ kind: "terminal_plain" })}>
-                  Добавить
+                  {i18n.t("analyze.add_step")}
                 </Button>
               </div>
 
               <div class="sp-tpl-card sp-tpl-card-fields">
                 <div class="sp-tpl-info">
-                  <span class="sp-tpl-name">Терминал с командой</span>
-                  <span class="sp-tpl-desc">Запустить команду в интерактивном окне терминала</span>
+                  <span class="sp-tpl-name">{i18n.t("analyze.terminal_command")}</span>
+                  <span class="sp-tpl-desc">{i18n.t("analyze.terminal_command_detail")}</span>
                 </div>
                 <div class="sp-tpl-inputs">
-                  <input type="text" placeholder="Команда (например: npm run dev)" bind:value={addTpl.command} />
-                  <input type="text" placeholder={`Рабочая папка (по умолчанию: корень проекта)`} bind:value={addTpl.workdir} />
+                  <input type="text" placeholder={i18n.t("analyze.dev_command_placeholder")} bind:value={addTpl.command} />
+                  <input type="text" placeholder={i18n.t("analyze.working_dir_placeholder")} bind:value={addTpl.workdir} />
                 </div>
                 <Button size="sm" variant="secondary" icon="plus" onclick={() => addStep({ kind: "terminal_cmd" })}>
-                  Добавить
+                  {i18n.t("analyze.add_step")}
                 </Button>
               </div>
 
               <div class="sp-tpl-card sp-tpl-card-fields">
                 <div class="sp-tpl-info">
-                  <span class="sp-tpl-name">Выполнить команду</span>
-                  <span class="sp-tpl-desc">Фоновая команда с перехватом вывода (CI/build/daemon)</span>
+                  <span class="sp-tpl-name">{i18n.t("analyze.run_command")}</span>
+                  <span class="sp-tpl-desc">{i18n.t("analyze.run_command_detail")}</span>
                 </div>
                 <div class="sp-tpl-inputs">
-                  <input type="text" placeholder="Команда (например: npm test)" bind:value={addTpl.command} />
-                  <input type="text" placeholder={`Рабочая папка (по умолчанию: корень проекта)`} bind:value={addTpl.workdir} />
+                  <input type="text" placeholder={i18n.t("analyze.test_command_placeholder")} bind:value={addTpl.command} />
+                  <input type="text" placeholder={i18n.t("analyze.working_dir_placeholder")} bind:value={addTpl.workdir} />
                 </div>
                 <Button size="sm" variant="secondary" icon="plus" onclick={() => addStep({ kind: "run_command" })}>
-                  Добавить
+                  {i18n.t("analyze.add_step")}
                 </Button>
               </div>
 
               <div class="sp-tpl-card sp-tpl-card-fields">
                 <div class="sp-tpl-info">
-                  <span class="sp-tpl-name">Открыть папку</span>
-                  <span class="sp-tpl-desc">Открыть проводник в указанной директории</span>
+                  <span class="sp-tpl-name">{i18n.t("analyze.open_folder")}</span>
+                  <span class="sp-tpl-desc">{i18n.t("analyze.open_folder_detail")}</span>
                 </div>
                 <div class="sp-tpl-inputs">
-                  <input type="text" placeholder={`Путь (по умолчанию: корень проекта)`} bind:value={addTpl.path} />
+                  <input type="text" placeholder={i18n.t("analyze.project_path_placeholder")} bind:value={addTpl.path} />
                 </div>
                 <Button size="sm" variant="secondary" icon="plus" onclick={() => addStep({ kind: "open_folder" })}>
-                  Добавить
+                  {i18n.t("analyze.add_step")}
                 </Button>
               </div>
 
               <div class="sp-tpl-card sp-tpl-card-fields">
                 <div class="sp-tpl-info">
-                  <span class="sp-tpl-name">Открыть URL</span>
-                  <span class="sp-tpl-desc">Открыть страницу в браузере по умолчанию</span>
+                  <span class="sp-tpl-name">{i18n.t("analyze.open_url")}</span>
+                  <span class="sp-tpl-desc">{i18n.t("analyze.open_url_detail")}</span>
                 </div>
                 <div class="sp-tpl-inputs">
                   <input type="text" placeholder="http://localhost:3000" bind:value={addTpl.url} />
                 </div>
                 <Button size="sm" variant="secondary" icon="plus" onclick={() => addStep({ kind: "open_url" })}>
-                  Добавить
+                  {i18n.t("analyze.add_step")}
                 </Button>
               </div>
 
               <div class="sp-tpl-card sp-tpl-card-fields">
                 <div class="sp-tpl-info">
-                  <span class="sp-tpl-name">Ожидать порт</span>
-                  <span class="sp-tpl-desc">Healthcheck: ждать доступности сокета перед следующим шагом</span>
+                  <span class="sp-tpl-name">{i18n.t("analyze.wait_port")}</span>
+                  <span class="sp-tpl-desc">{i18n.t("analyze.wait_port_detail")}</span>
                 </div>
                 <div class="sp-tpl-inputs sp-tpl-inputs-row">
-                  <input type="text" placeholder="Хост" bind:value={addTpl.host} style="width: 110px;" />
-                  <input type="number" placeholder="Порт" bind:value={addTpl.port} style="width: 90px;" />
-                  <input type="number" placeholder="Таймаут (сек)" bind:value={addTpl.timeout} style="width: 110px;" />
+                  <input type="text" placeholder={i18n.t("analyze.host_placeholder")} bind:value={addTpl.host} style="width: 110px;" />
+                  <input type="number" placeholder={i18n.t("analyze.port_placeholder")} bind:value={addTpl.port} style="width: 90px;" />
+                  <input type="number" placeholder={i18n.t("analyze.timeout_placeholder")} bind:value={addTpl.timeout} style="width: 110px;" />
                 </div>
                 <Button size="sm" variant="secondary" icon="plus" onclick={() => addStep({ kind: "wait_port" })}>
-                  Добавить
+                  {i18n.t("analyze.add_step")}
                 </Button>
               </div>
 
               <div class="sp-tpl-card sp-tpl-card-fields">
                 <div class="sp-tpl-info">
-                  <span class="sp-tpl-name">Пауза (задержка)</span>
-                  <span class="sp-tpl-desc">Подождать N секунд перед запуском следующего действия</span>
+                  <span class="sp-tpl-name">{i18n.t("analyze.delay_step")}</span>
+                  <span class="sp-tpl-desc">{i18n.t("analyze.delay_detail")}</span>
                 </div>
                 <div class="sp-tpl-inputs sp-tpl-inputs-row">
-                  <input type="number" placeholder="Секунды" bind:value={addTpl.seconds} style="width: 120px;" />
+                  <input type="number" placeholder={i18n.t("analyze.seconds_placeholder")} bind:value={addTpl.seconds} style="width: 120px;" />
                 </div>
                 <Button size="sm" variant="secondary" icon="plus" onclick={() => addStep({ kind: "delay" })}>
-                  Добавить
+                  {i18n.t("analyze.add_step")}
                 </Button>
               </div>
             </div>
@@ -643,7 +643,7 @@
                     </div>
 
                     <div class="sp-field">
-                      <label for="step-timeout-{step.id}">Таймаут (сек) — пусто = по умолчанию</label>
+                      <label for="step-timeout-{step.id}">{i18n.t("analyze.timeout_default")}</label>
                       <input
                         id="step-timeout-{step.id}"
                         type="number"
@@ -654,7 +654,7 @@
                     </div>
 
                     <div class="sp-field">
-                      <label for="step-fail-{step.id}">Политика при ошибке</label>
+                      <label for="step-fail-{step.id}">{i18n.t("analyze.failure_policy_label")}</label>
                       <select
                         id="step-fail-{step.id}"
                         value={step.failure_policy ?? ""}
@@ -671,7 +671,7 @@
                     </div>
 
                     <div class="sp-field">
-                      <label for="step-vis-{step.id}">Видимость терминала</label>
+                      <label for="step-vis-{step.id}">{i18n.t("analyze.terminal_visibility")}</label>
                       <select
                         id="step-vis-{step.id}"
                         value={step.visibility ?? ""}
@@ -690,7 +690,7 @@
 
                   {#if (step.depends_on ?? []).length > 0}
                     <div class="sp-field sp-field-full">
-                      <span class="sp-label">Запускается после</span>
+                      <span class="sp-label">{i18n.t("analyze.runs_after")}</span>
                       <div class="sp-chips">
                         {#each step.depends_on ?? [] as dep}
                           <span class="sp-chip">{dep}</span>

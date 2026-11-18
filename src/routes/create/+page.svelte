@@ -17,7 +17,7 @@
 <PageContainer width="wide">
   <PageHeader
     title={i18n.t("create.title") as TranslationKey}
-    description="Мастер создания проектов: подбор архитектуры, фреймворков и инструментов запуска"
+    description={i18n.t("create.description")}
     icon="sparkles"
   >
     {#snippet actions()}
@@ -53,13 +53,13 @@
   {:else if store.status === "error"}
     <ErrorState
       title={i18n.t("create.init_failed") as TranslationKey}
-      message="Не удалось загрузить данные шаблонов и фреймворков"
+      message={i18n.t("create.init_failed_detail")}
     />
   {:else if store.status === "empty"}
     <EmptyState
       icon="sparkles"
       title={i18n.t("create.no_types") as TranslationKey}
-      description="Типы проектов не найдены в конфигурации"
+      description={i18n.t("create.no_types_detail")}
     />
   {:else}
     {#if store.mode === "analyze"}

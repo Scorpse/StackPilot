@@ -1,24 +1,26 @@
 # StackPilot 1.4.0
 
-### 🛡️ Изоляция виртуальных окружений проектов (Virtual Environments)
-- **Полное разделение зависимостей и рантаймов**: каждый проект может использовать изолированные библиотеки, инструменты и переменные окружения без конфликтов с глобальной системой.
-- **Новый раздел «Окружения» в GUI**: наглядный мониторинг активных окружений, путей и установленных пакетов.
-- **Интеграция с конструктором и рабочим пространством**: выбор режима изоляции при создании проекта и автоматическая подгрузка изолированного окружения при запуске IDE и терминалов.
-- **Консольное управление через CLI (`stkpil env`)**: поддержка команд `list`, `run`, `shell`, `bind` и `export` для выполнения процессов в контексте нужного окружения и экспорта скриптов активации (`activate.bat`, `activate.sh`).
+[Русская версия](RELEASE_NOTES.ru.md)
 
-### ⚡ Интерактивный CLI-мастер создания проектов (`stkpil create`)
-- **Интерактивный Wizard в терминале**: пошаговый мастер создания проектов с поддержкой пресетов и тонкой настройки технологий.
-- **Валидация ограничений стека (`constraints`)**: интеллектуальная проверка совместимости языков, баз данных, фреймворков и инструментов, защищающая от несовместимых связок.
-- **Исправление генератора проектов**: устранена ошибка генерации бэкенда AdonisJS и скриптов добавления зависимостей.
+## Project environments
 
-### 🐧 Оптимизация и интеграция для Linux
-- **Улучшения GUI и рендеринга**: оптимизация для WebKitGTK, Wayland и X11, настройка аппаратного ускорения и прозрачности окон.
-- **Интеграция с дистрибутивами**: обновлены пакеты Arch Linux (`PKGBUILD`, `PKGBUILD-bin`) и добавлен скрипт быстрой установки `install.sh`.
+- Projects can use separate runtimes, libraries, tools, and environment variables.
+- The new **Environments** screen shows active environments, paths, and installed packages.
+- Project Creator can select an isolation mode. Workspace applies the linked environment when opening an IDE or terminal.
+- The CLI supports `stkpil env list`, `run`, `shell`, `bind`, and `export`. Export writes `activate.bat` or `activate.sh` for standalone use.
 
-### 🍎 Оптимизация для macOS
-- **Системная интеграция**: запуск приложений и IDE через нативную утилиту `open`, корректное разрешение путей в `.app`-пакетах.
-- **Homebrew и Apple Silicon**: улучшенное обнаружение путей тулчейна и инструментов на ARM64 и Intel.
+## Interactive project wizard
 
-### 🎨 Улучшения интерфейса Toolchain
-- **Обновлённый режим «Manage Everything»**: удобная сетка управления установленным ПО.
-- **Информативный Hero-блок**: улучшенная индикация состояния окружения и системных инструментов.
+- `stkpil create` walks through presets and technology choices in the terminal.
+- Stack constraints check compatibility across languages, databases, frameworks, and tools.
+- The AdonisJS backend generator and dependency installation scripts were corrected.
+
+## Platform improvements
+
+- Linux rendering and initialization were improved for WebKitGTK, Wayland, and X11, including hardware acceleration and window transparency. The Arch packages were updated and an install script was added.
+- macOS uses the native `open` command to launch apps and IDEs. Toolchain detection handles Homebrew and paths on Apple Silicon and Intel.
+
+## Toolchain interface
+
+- **Manage Everything** uses a grid to display installed software.
+- The summary shows more detail about the environment and system tools.

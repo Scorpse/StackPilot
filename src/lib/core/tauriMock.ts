@@ -39,7 +39,7 @@ export function initTauriMock() {
     db_viewer_path: "",
     terminal: "",
     theme: "dark",
-    language: "ru",
+    language: "en",
     auto_save_profiles: true,
     auto_save: true,
     font_size: "md",

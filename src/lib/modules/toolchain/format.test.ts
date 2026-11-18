@@ -1,5 +1,6 @@
 // Тесты форматтеров: размеры, время, состояния, санитизация ошибок.
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
+import { i18n } from "../../core/i18n.svelte";
 import {
   capabilityLabels,
   formatAgeSeconds,
@@ -18,6 +19,10 @@ import {
   toolStateVersion,
   versionAssessmentInfo,
 } from "./format";
+
+beforeAll(() => {
+  i18n.setLocale("ru");
+});
 
 describe("размеры", () => {
   it("МБ остаются МБ, тысячи переходят в ГБ", () => {

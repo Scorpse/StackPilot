@@ -60,7 +60,7 @@ impl JsonSettingsService {
             db_viewer_path: String::new(),
             terminal: String::new(),
             theme: "dark".into(),
-            language: "ru".into(),
+            language: "en".into(),
             auto_save_profiles: true,
             auto_save: true,
             font_size: "md".into(),
@@ -100,7 +100,7 @@ impl JsonSettingsService {
             s.theme = "dark".into();
         }
         if !matches!(s.language.as_str(), "ru" | "en") {
-            s.language = "ru".into();
+            s.language = "en".into();
         }
         if !matches!(s.font_size.as_str(), "sm" | "md" | "lg") {
             s.font_size = "md".into();
@@ -277,6 +277,7 @@ mod tests {
         let svc = JsonSettingsService::new(dir.clone());
         let got = svc.get_settings().unwrap();
         assert_eq!(got.theme, "dark");
+        assert_eq!(got.language, "en");
         assert_eq!(got.accent_color, "orange");
         assert!(got.auto_save);
         assert!(svc.settings_path.exists());
@@ -289,6 +290,7 @@ mod tests {
         let svc = JsonSettingsService::new(dir.clone());
         let mut s = svc.get_settings().unwrap();
         s.theme = "weird".into();
+        s.language = "invalid".into();
         s.font_size = "xxl".into();
         s.accent_color = "not-a-color".into();
         s.ai.temperature = 99.0;
@@ -296,6 +298,7 @@ mod tests {
         s.ai.provider = "nope".into();
         let got = svc.update_settings(&s).unwrap();
         assert_eq!(got.theme, "dark");
+        assert_eq!(got.language, "en");
         assert_eq!(got.font_size, "md");
         assert_eq!(got.accent_color, "orange");
         assert_eq!(got.ai.temperature, 2.0);
@@ -321,9 +324,13 @@ mod tests {
         let svc = JsonSettingsService::new(dir.clone());
         let mut s = svc.get_settings().unwrap();
         s.theme = "light".into();
+        s.language = "ru".into();
         svc.update_settings(&s).unwrap();
+        let saved = JsonSettingsService::new(dir.clone()).get_settings().unwrap();
+        assert_eq!(saved.language, "ru");
         let reset = svc.reset_to_defaults().unwrap();
         assert_eq!(reset.theme, "dark");
+        assert_eq!(reset.language, "en");
         fs::remove_dir_all(dir).ok();
     }
 

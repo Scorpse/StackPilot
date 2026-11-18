@@ -376,26 +376,27 @@ export function allProvenanceKinds(): { kind: ProvenanceKind; info: StateInfo }[
 // Возможности платформы (8 флагов)
 // ------------------------------------------------------------
 
-const CAPABILITY_LABELS: { [K in keyof ToolPlatformCapabilities]: string } = {
-  detectable: i18n.t("tc.cap.detectable"),
-  installable: i18n.t("tc.cap.installable"),
-  updatable: i18n.t("tc.cap.updatable"),
-  removable: i18n.t("tc.cap.removable"),
-  repairable: i18n.t("tc.cap.repairable"),
-  health_checkable: i18n.t("tc.cap.health_checkable"),
-  manual_instructions_available: i18n.t("tc.cap.manual_instructions"),
-  docker_alternative_available: i18n.t("tc.cap.docker_alt"),
+const CAPABILITY_LABEL_KEYS: { [K in keyof ToolPlatformCapabilities]: string } = {
+  detectable: "tc.cap.detectable",
+  installable: "tc.cap.installable",
+  updatable: "tc.cap.updatable",
+  removable: "tc.cap.removable",
+  repairable: "tc.cap.repairable",
+  health_checkable: "tc.cap.health_checkable",
+  manual_instructions_available: "tc.cap.manual_instructions",
+  docker_alternative_available: "tc.cap.docker_alt",
 };
 
 /** Подписи ВКЛЮЧЁННЫХ возможностей (для карточек/фильтров). */
 export function capabilityLabels(caps: ToolPlatformCapabilities): string[] {
-  return (Object.keys(CAPABILITY_LABELS) as (keyof ToolPlatformCapabilities)[])
+  return (Object.keys(CAPABILITY_LABEL_KEYS) as (keyof ToolPlatformCapabilities)[])
     .filter((k) => caps[k])
-    .map((k) => CAPABILITY_LABELS[k]);
+    .map(capabilityLabel);
 }
 
 export function capabilityLabel(flag: keyof ToolPlatformCapabilities): string {
-  return CAPABILITY_LABELS[flag] ?? flag;
+  const key = CAPABILITY_LABEL_KEYS[flag];
+  return key ? i18n.t(key) : flag;
 }
 
 // ------------------------------------------------------------

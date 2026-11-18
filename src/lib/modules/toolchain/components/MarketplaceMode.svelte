@@ -417,7 +417,7 @@
 
       <!-- ===== Секционные вкладки / быстрые фильтры ===== -->
       {#if sectionGroups.length > 1}
-        <div class="section-tabs" role="tablist" aria-label="Секции витрины">
+        <div class="section-tabs" role="tablist" aria-label={i18n.t("tc.ui.marketplace_sections")}>
           <button
             type="button"
             role="tab"

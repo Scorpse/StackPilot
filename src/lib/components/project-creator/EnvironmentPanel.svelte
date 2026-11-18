@@ -253,6 +253,7 @@
   }
 
   function projectCountWord(n: number): string {
+    if (i18n.locale === "en") return n === 1 ? "project" : "projects";
     const mod10 = n % 10;
     const mod100 = n % 100;
     if (mod100 >= 11 && mod100 <= 19) return "проектов";
@@ -277,7 +278,7 @@
   <div class="env-mode-left">
     <div class="env-mode-meta">
       <Icon name="package" size={14} />
-      <span class="env-mode-label">{i18n.t("create.env_isolation_title" as TranslationKey) || "Режим окружения"}:</span>
+      <span class="env-mode-label">{i18n.t("create.env_isolation_title" as TranslationKey)}:</span>
     </div>
     <div class="env-mode-pills" role="radiogroup" aria-label="Environment Mode">
       <button
@@ -305,10 +306,10 @@
   <div class="env-mode-hint-inline">
     {#if envIsolationMode === "isolated"}
       <span class="hint-dot ok"></span>
-      <span class="hint-text">{i18n.t("create.env_mode_isolated_summary" as TranslationKey) || "Изолированная песочница проекта (чистый PATH Windows)"}</span>
+      <span class="hint-text">{i18n.t("create.env_mode_isolated_summary" as TranslationKey)}</span>
     {:else}
       <span class="hint-dot warn"></span>
-      <span class="hint-text">{i18n.t("create.env_mode_global_summary" as TranslationKey) || "Системные версии из PATH хоста"}</span>
+      <span class="hint-text">{i18n.t("create.env_mode_global_summary" as TranslationKey)}</span>
     {/if}
   </div>
 </div>
@@ -316,7 +317,7 @@
 {#if envIsolationMode === "isolated"}
   <div class="env-submode-strip">
     <div class="env-submode-left">
-      <span class="env-submode-label">Песочница:</span>
+      <span class="env-submode-label">{i18n.t("create.sandbox_label")}</span>
       <div class="env-submode-pills" role="radiogroup" aria-label="Target Sandbox">
         <button
           type="button"
@@ -325,7 +326,7 @@
           onclick={() => onchangeSubMode?.("new")}
         >
           <span class="subpill-icon">➕</span>
-          <span>Новая среда</span>
+          <span>{i18n.t("create.env_new")}</span>
         </button>
         <button
           type="button"
@@ -339,7 +340,7 @@
           }}
         >
           <Icon name="folder" size={13} />
-          <span>Существующая среда</span>
+          <span>{i18n.t("create.env_existing")}</span>
         </button>
       </div>
 
@@ -353,9 +354,9 @@
               type="button"
               class="btn-change-env"
               onclick={() => openEnvPicker()}
-              title="Сменить песочницу"
+              title={i18n.t("create.env_change_sandbox")}
             >
-              Сменить
+              {i18n.t("create.env_change")}
             </button>
           </div>
         {:else}
@@ -365,7 +366,7 @@
             onclick={() => openEnvPicker()}
           >
             <Icon name="search" size={12} />
-            <span>Выбрать среду...</span>
+            <span>{i18n.t("create.env_choose")}</span>
           </button>
         {/if}
       {/if}
@@ -374,7 +375,7 @@
     <div class="env-advice-box">
       <span class="advice-icon">💡</span>
       <span class="advice-text">
-        <strong>Совет:</strong> песочница разделяет общие бинарники тулчейнов (Node, Python) без дублирования на диске, но зависимости проекта (<code>venv</code>, <code>node_modules</code>) изолированы отдельно.
+        {i18n.t("create.env_sharing_tip")}
       </span>
     </div>
   </div>
@@ -464,44 +465,44 @@
             <span class="reused-icon">⚡</span>
             <div>
               <h4 class="reused-title">{envReuseTarget.name || envReuseTarget.binding_id}</h4>
-              <p class="reused-subtitle">ID: {envReuseTarget.binding_id} · Проект будет подключен к этой песочнице</p>
+              <p class="reused-subtitle">{i18n.t("create.env_reuse_id", { id: envReuseTarget.binding_id })}</p>
             </div>
           </div>
           <button type="button" class="btn-change-reused" onclick={() => openEnvPicker()}>
-            Сменить песочницу
+            {i18n.t("create.env_change_sandbox")}
           </button>
         </div>
 
         <div class="env-reused-tools-section">
-          <span class="reused-section-title">Готовые тулчейны окружения:</span>
+          <span class="reused-section-title">{i18n.t("create.env_ready_tools")}</span>
           <div class="reused-tools-chips">
             {#each Object.entries(envReuseTarget.tool_overrides || {}) as [tid, ov]}
               <div class="reused-tool-chip">
                 <TechIcon icon={toolIcon(tid)} alt={tid} size="xs" />
                 <span class="chip-name">{tid}</span>
-                <span class="chip-ver">{ov.version || "по умолчанию"}</span>
+                <span class="chip-ver">{ov.version || i18n.t("create.env_default_version")}</span>
               </div>
             {/each}
             {#if Object.keys(envReuseTarget.tool_overrides || {}).length === 0}
-              <span class="muted text-sm">Используются настройки тулчейнов по умолчанию</span>
+              <span class="muted text-sm">{i18n.t("create.env_default_toolchain")}</span>
             {/if}
           </div>
         </div>
 
         <div class="env-reused-footer-note">
           <span class="ok-dot">✓</span>
-          <span>Повторное скачивание не требуется — инструменты уже установлены в Shared Store.</span>
+          <span>{i18n.t("create.env_reuse_download")}</span>
         </div>
       </div>
     {:else}
       <div class="env-reused-empty-prompt">
         <div class="prompt-icon">🔍</div>
         <div class="prompt-body">
-          <h4>Песочница не выбрана</h4>
-          <p>Для подключения выберите одно из ранее созданных изолированных окружений.</p>
+          <h4>{i18n.t("create.env_no_sandbox")}</h4>
+          <p>{i18n.t("create.env_select_existing")}</p>
         </div>
         <button type="button" class="btn-primary" onclick={() => openEnvPicker()}>
-          Выбрать песочницу
+          {i18n.t("create.env_select_sandbox")}
         </button>
       </div>
     {/if}
@@ -759,7 +760,7 @@
     {:else if envIsolationMode === "isolated" && envSubMode === "existing"}
       {#if !envReuseTarget}
         <button class="btn-primary" onclick={() => openEnvPicker()}>
-          Выбрать песочницу...
+          {i18n.t("create.env_select_sandbox")}
         </button>
       {:else}
         <button class="btn-primary" onclick={oncontinue}>
@@ -823,8 +824,8 @@
 <Modal
   open={showEnvPicker}
   onclose={() => (showEnvPicker = false)}
-  title="Выбор существующей изолированной песочницы"
-  description="Выберите песочницу, тулчейны которой будут переиспользованы для нового проекта."
+  title={i18n.t("create.env_picker_title")}
+  description={i18n.t("create.env_picker_description")}
   size="lg"
 >
   <div class="env-modal-content">
@@ -833,20 +834,20 @@
       <input
         type="search"
         class="env-search-input"
-        placeholder="Поиск по названию среды или инструментам..."
+        placeholder={i18n.t("create.env_picker_search")}
         bind:value={envFilterQuery}
       />
     </div>
 
     {#if envLoadingList}
       <div class="env-modal-loading">
-        <span class="spin"></span> Загрузка окружений...
+        <span class="spin"></span> {i18n.t("environments.loading")}
       </div>
     {:else if availableEnvList.length === 0}
       <div class="env-modal-empty">
         <Icon name="box" size={32} />
-        <p>Нет доступных сохраненных окружений.</p>
-        <span class="muted">Вы можете продолжить с режимом "Новая среда" — песочница создастся автоматически.</span>
+        <p>{i18n.t("create.env_picker_empty")}</p>
+        <span class="muted">{i18n.t("create.env_picker_offer_new")}</span>
       </div>
     {:else}
       {@const filtered = availableEnvList.filter((e) => {
@@ -858,7 +859,7 @@
       })}
       {#if filtered.length === 0}
         <div class="env-modal-empty">
-          <p>Ничего не найдено по запросу "{envFilterQuery}".</p>
+          <p>{i18n.t("create.env_picker_no_match", { query: envFilterQuery })}</p>
         </div>
       {:else}
         <div class="env-modal-grid">
@@ -878,12 +879,12 @@
                   <div>
                     <div class="env-card-name">{env.name || env.binding_id}</div>
                     <div class="env-card-sub">
-                      ID: {env.binding_id} · {env.isolation_mode === "isolated" ? "Песочница" : "Global"}
+                      ID: {env.binding_id} · {env.isolation_mode === "isolated" ? i18n.t("create.env_sandbox_badge") : i18n.t("environments.global_badge")}
                     </div>
                   </div>
                 </div>
                 {#if isSelected}
-                  <span class="selected-badge">Выбрана</span>
+                  <span class="selected-badge">{i18n.t("create.env_picker_selected")}</span>
                 {/if}
               </div>
 
@@ -894,7 +895,7 @@
                   </span>
                 {/each}
                 {#if Object.keys(env.tool_overrides || {}).length === 0}
-                  <span class="tool-tag muted">Тулчейны по умолчанию</span>
+                  <span class="tool-tag muted">{i18n.t("create.env_picker_default_tools")}</span>
                 {/if}
               </div>
 
@@ -911,7 +912,7 @@
                     selectEnvironment(env);
                   }}
                 >
-                  {isSelected ? "Выбрано ✓" : "Выбрать"}
+                  {isSelected ? i18n.t("create.env_picker_checked") : i18n.t("create.env_picker_select")}
                 </button>
               </div>
             </div>
@@ -924,11 +925,11 @@
   {#snippet footer()}
     <div class="env-modal-actions">
       <button type="button" class="btn-secondary" onclick={() => (showEnvPicker = false)}>
-        Отмена
+        {i18n.t("environments.cancel")}
       </button>
       {#if envReuseTarget}
         <button type="button" class="btn-primary" onclick={() => (showEnvPicker = false)}>
-          Применить выбор
+          {i18n.t("create.env_apply")}
         </button>
       {/if}
     </div>
@@ -1337,14 +1338,6 @@
     flex-shrink: 0;
     margin-top: 1px;
   }
-  .advice-text code {
-    background: rgba(0, 0, 0, 0.25);
-    padding: 1px 4px;
-    border-radius: 3px;
-    font-family: var(--sp-font-mono, monospace);
-    color: #93c5fd;
-  }
-
   /* Reused Card */
   .env-reused-card {
     display: flex;
